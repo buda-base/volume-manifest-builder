@@ -59,6 +59,8 @@ def manifestExists(s3folderPrefix):
 def expandImageList(imageListString):
 	"""
 	expands an image list string into an array. Image lists are documented on http://purl.bdrc.io/ontology/core/imageList
+	see also this example in Java (although probably a bit too sophisticated):
+	https://github.com/buda-base/buda-iiif-presentation/blob/d64a2c47c056bfa8658c06c1cddd2566ff4a0a2a/src/main/java/io/bdrc/iiif/presentation/models/ImageListIterator.java
 	Example:
 	   - imageListString="I2PD44320001.tif:2|I2PD44320003.jpg"
 	   - result ["I2PD44320001.tif","I2PD44320002.tif","I2PD44320003.jpg"]
