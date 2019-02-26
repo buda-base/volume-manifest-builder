@@ -1,6 +1,19 @@
 
 S3BUCKET = "archive.tbrc.org"
 
+def main():
+	"""
+	reads the first argument of the command line and pass it as filename to the manifestForList function
+	"""
+	pass
+
+def manifestForList(filename):
+	"""
+	reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
+	The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
+	"""
+	pass
+
 def manifestForWork(workRID):
 	"""
 	this function generates the manifests for each volume of a work RID (example W22084)
