@@ -40,8 +40,9 @@ def manifestForVolume(workRID, vi):
     this function generates the manifest for an image group of a work (example: I0886 in W22084)
     """
     s3folderPrefix = getS3FolderPrefix(workRID, vi.imageGroupID)
-    if manifestExists(s3folderPrefix):
-        return
+    ### TODO: uncomment once the function is implemented
+    # if manifestExists(s3folderPrefix):
+    #     return
     manifest = generateManifest(s3folderPrefix, vi.imageList)
     uploadManifest(s3folderPrefix, manifest)
 
@@ -103,15 +104,32 @@ def expandImageList(imageListString):
        - imageListString="I2PD44320001.tif:2|I2PD44320003.jpg"
        - result ["I2PD44320001.tif","I2PD44320002.tif","I2PD44320003.jpg"]
     """
+    imageList = []
+    spans = imageListString.split('|')
+    for s in spans:
+        if ':' in s:
+            name, count = s.split(':')
+            dot = name.find('.')
+            num, ext = name[:dot], name[dot:]
+            for i in range(int(count)):
+                incremented = str(int(num) + i).zfill(len(num))
+                imageList.append('{}{}'.format(incremented, ext))
+        else:
+            imageList.append(s)
+
+    return imageList
+
+
+def gets3blob(s3imageKey):
     pass
 
 
-def generateManifest(s3folderPrefix, imageList):
+def generateManifest(s3folderPrefix, imageListString):
     """
     this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
     """
     res = []
-    for imageFileName in imageList:
+    for imageFileName in expandImageList(imageListString):
         s3imageKey = s3folderPrefix + imageFileName
         blob = gets3blob(s3imageKey)
         dimensions = dimensionsFromBlobImage(blob)
@@ -136,15 +154,15 @@ def getVolumeInfos(workRID):
     The information should be fetched (in csv or json) from lds-pdi, query for W22084 for instance is:
     http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:W22084&format=csv&profile=simple&pageSize=500
     """
-    VolInfo = namedtuple('Work', ['work', 'imageList', 'imageGroupID'])
+    VolInfo = namedtuple('Work', ['imageList', 'imageGroupID'])
     vol_info = []
     req = 'http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:{}&format=csv&profile=simple&pageSize=500'.format(workRID)
     with request.urlopen(req) as response:
         info = response.read()
         info = info.decode('utf8').strip()
         for line in info.split('\n')[1:]:
-            w, l, g = line.replace('"', '').split(',')
-            vi = VolInfo(w, l, g)
+            _, l, g = line.replace('"', '').split(',')
+            vi = VolInfo(l, g)
             print('ok')
             vol_info.append(vi)
     return vol_info
