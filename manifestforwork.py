@@ -2,7 +2,10 @@ import sys
 from collections import namedtuple
 from urllib import request
 import hashlib
+import io
 
+import boto3
+import botocore
 
 S3BUCKET = "archive.tbrc.org"
 
@@ -40,7 +43,6 @@ def manifestForVolume(workRID, vi):
     this function generates the manifest for an image group of a work (example: I0886 in W22084)
     """
     s3folderPrefix = getS3FolderPrefix(workRID, vi.imageGroupID)
-    ### TODO: uncomment once the function is implemented
     # if manifestExists(s3folderPrefix):
     #     return
     manifest = generateManifest(s3folderPrefix, vi.imageList)
@@ -121,7 +123,15 @@ def expandImageList(imageListString):
 
 
 def gets3blob(s3imageKey):
-    pass
+    s3 = boto3.resource('s3')
+    f = io.BytesIO()
+    try:
+        s3.Bucket(S3BUCKET).download_file(s3imageKey, f)
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            print('The object does not exist.')
+        else:
+            raise
 
 
 def generateManifest(s3folderPrefix, imageListString):
@@ -154,7 +164,7 @@ def getVolumeInfos(workRID):
     The information should be fetched (in csv or json) from lds-pdi, query for W22084 for instance is:
     http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:W22084&format=csv&profile=simple&pageSize=500
     """
-    VolInfo = namedtuple('Work', ['imageList', 'imageGroupID'])
+    VolInfo = namedtuple('VolInfo', ['imageList', 'imageGroupID'])
     vol_info = []
     req = 'http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:{}&format=csv&profile=simple&pageSize=500'.format(workRID)
     with request.urlopen(req) as response:
@@ -165,6 +175,7 @@ def getVolumeInfos(workRID):
             vi = VolInfo(l, g)
             print('ok')
             vol_info.append(vi)
+
     return vol_info
 
 
