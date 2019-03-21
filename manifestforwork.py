@@ -17,7 +17,7 @@ def main():
     """
     reads the first argument of the command line and pass it as filename to the manifestForList function
     """
-    # manifestForList('RIDs.txt')
+    # manifestForList('RIDs.txt') # uncomment to test locally
     manifestForList(sys.argv[1])
 
 
@@ -27,29 +27,30 @@ def manifestForList(filename):
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
     """
     client = boto3.client('s3')
+    bucket = boto3.resource('s3').Bucket(S3BUCKET)
     with open(filename, 'r') as f:
         for workRID in f.readlines():
             workRID = workRID.strip()
-            manifestForWork(client, workRID)
+            manifestForWork(client, bucket, workRID)
 
 
-def manifestForWork(client, workRID):
+def manifestForWork(client, bucket, workRID):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """
     volumeInfos = getVolumeInfos(workRID)
     for vi in volumeInfos:
-        manifestForVolume(client, workRID, vi)
+        manifestForVolume(client, bucket, workRID, vi)
 
 
-def manifestForVolume(client, workRID, vi):
+def manifestForVolume(client, bucket, workRID, vi):
     """
     this function generates the manifest for an image group of a work (example: I0886 in W22084)
     """
     s3folderPrefix = getS3FolderPrefix(workRID, vi.imageGroupID)
     if manifestExists(client, s3folderPrefix):
         return
-    manifest = generateManifest(s3folderPrefix, vi.imageList)
+    manifest = generateManifest(bucket, s3folderPrefix, vi.imageList)
     uploadManifest(client, s3folderPrefix, manifest)
 
 
@@ -64,7 +65,7 @@ def gzip_str(string_):
     return bytes_obj
 
 
-def uploadManifest(client, s3folderPrefix, manifestObject):
+def uploadManifest(bucket, s3folderPrefix, manifestObject):
     """
     inspire from:
     https://github.com/buda-base/drs-deposit/blob/2f2d9f7b58977502ae5e90c08e77e7deee4c470b/contrib/tojsondimensions.py#L68
@@ -82,8 +83,7 @@ def uploadManifest(client, s3folderPrefix, manifestObject):
 
     key = s3folderPrefix + 'dimensions.json'
 
-    s3 = boto3.resource('s3')
-    s3.Bucket(S3BUCKET).put_object(Key=key, Body=manifest_gzip, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'})
+    bucket.put_object(Key=key, Body=manifest_gzip, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'})
 
 
 def getS3FolderPrefix(workRID, imageGroupID):
@@ -141,21 +141,20 @@ def expandImageList(imageListString):
         if ':' in s:
             name, count = s.split(':')
             dot = name.find('.')
-            num, ext = name[:dot], name[dot:]
+            prefix, num, ext = name[:dot-4], name[dot-4:dot], name[dot:]
             for i in range(int(count)):
                 incremented = str(int(num) + i).zfill(len(num))
-                imageList.append('{}{}'.format(incremented, ext))
+                imageList.append('{}{}{}'.format(prefix, incremented, ext))
         else:
             imageList.append(s)
 
     return imageList
 
 
-def gets3blob(s3imageKey):
-    s3 = boto3.resource('s3')
+def gets3blob(bucket, s3imageKey):
     f = io.BytesIO()
     try:
-        s3.Bucket(S3BUCKET).download_fileobj(s3imageKey, f)
+        bucket.download_fileobj(s3imageKey, f)
         return f
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == '404':
@@ -164,14 +163,14 @@ def gets3blob(s3imageKey):
             raise
 
 
-def generateManifest(s3folderPrefix, imageListString):
+def generateManifest(bucket, s3folderPrefix, imageListString):
     """
     this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
     """
     res = []
-    for imageFileName in expandImageList(imageListString)[:10]:
+    for imageFileName in expandImageList(imageListString):
         s3imageKey = s3folderPrefix + imageFileName
-        blob = gets3blob(s3imageKey)
+        blob = gets3blob(bucket, s3imageKey)
         width, heigth = dimensionsFromBlobImage(blob)
         dimensions = {"filename": imageFileName, "width": width, "height": heigth}
         res.append(dimensions)
