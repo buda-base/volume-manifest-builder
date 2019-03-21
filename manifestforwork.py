@@ -79,12 +79,11 @@ def uploadManifest(client, s3folderPrefix, manifestObject):
     """
     manifest_str = json.dumps(manifestObject)
     manifest_gzip = gzip_str(manifest_str)
-    manifest_io = io.BytesIO(manifest_gzip)
 
     key = s3folderPrefix + 'dimensions.json'
 
     s3 = boto3.resource('s3')
-    s3.Bucket(S3BUCKET).put_object(Key=key, Body=manifest_io, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'})
+    s3.Bucket(S3BUCKET).put_object(Key=key, Body=manifest_gzip, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'})
 
 
 def getS3FolderPrefix(workRID, imageGroupID):
