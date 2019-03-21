@@ -3,9 +3,12 @@ from collections import namedtuple
 from urllib import request
 import hashlib
 import io
+import json
+import gzip
 
 import boto3
 import botocore
+from PIL import Image
 
 S3BUCKET = "archive.tbrc.org"
 
@@ -14,8 +17,8 @@ def main():
     """
     reads the first argument of the command line and pass it as filename to the manifestForList function
     """
-    manifestForList('RIDs.txt')
-    # manifestForList(sys.argv[1])
+    # manifestForList('RIDs.txt')
+    manifestForList(sys.argv[1])
 
 
 def manifestForList(filename):
@@ -23,33 +26,45 @@ def manifestForList(filename):
     reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
     """
+    client = boto3.client('s3')
     with open(filename, 'r') as f:
         for workRID in f.readlines():
             workRID = workRID.strip()
-            manifestForWork(workRID)
+            manifestForWork(client, workRID)
 
 
-def manifestForWork(workRID):
+def manifestForWork(client, workRID):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """
     volumeInfos = getVolumeInfos(workRID)
     for vi in volumeInfos:
-        manifestForVolume(workRID, vi)
+        manifestForVolume(client, workRID, vi)
 
 
-def manifestForVolume(workRID, vi):
+def manifestForVolume(client, workRID, vi):
     """
     this function generates the manifest for an image group of a work (example: I0886 in W22084)
     """
     s3folderPrefix = getS3FolderPrefix(workRID, vi.imageGroupID)
-    # if manifestExists(s3folderPrefix):
-    #     return
+    if manifestExists(client, s3folderPrefix):
+        return
     manifest = generateManifest(s3folderPrefix, vi.imageList)
-    uploadManifest(s3folderPrefix, manifest)
+    uploadManifest(client, s3folderPrefix, manifest)
 
 
-def uploadManifest(s3folderPrefix, manifestObject):
+def gzip_str(string_):
+    # taken from https://gist.github.com/Garrett-R/dc6f08fc1eab63f94d2cbb89cb61c33d
+    out = io.BytesIO()
+
+    with gzip.GzipFile(fileobj=out, mode='w') as fo:
+        fo.write(string_.encode())
+
+    bytes_obj = out.getvalue()
+    return bytes_obj
+
+
+def uploadManifest(client, s3folderPrefix, manifestObject):
     """
     inspire from:
     https://github.com/buda-base/drs-deposit/blob/2f2d9f7b58977502ae5e90c08e77e7deee4c470b/contrib/tojsondimensions.py#L68
@@ -62,7 +77,14 @@ def uploadManifest(s3folderPrefix, manifestObject):
           - ContentEncoding='gzip'
           - key: s3folderPrefix+"dimensions.json" (making sure there is a /)
     """
-    pass
+    manifest_str = json.dumps(manifestObject)
+    manifest_gzip = gzip_str(manifest_str)
+    manifest_io = io.BytesIO(manifest_gzip)
+
+    key = s3folderPrefix + 'dimensions.json'
+
+    s3 = boto3.resource('s3')
+    s3.Bucket(S3BUCKET).put_object(Key=key, Body=manifest_io, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'})
 
 
 def getS3FolderPrefix(workRID, imageGroupID):
@@ -90,11 +112,19 @@ def getS3FolderPrefix(workRID, imageGroupID):
     return 'Works/{two}/{RID}/images/{RID}-{suffix}/'.format(two=two, RID=workRID, suffix=suffix)
 
 
-def manifestExists(s3folderPrefix):
+def manifestExists(client, s3folderPrefix):
     """
     make sure s3folderPrefix+"/dimensions.json" doesn't exist in S3
     """
-    pass
+    key = s3folderPrefix + 'dimensions.json'
+    try:
+        client.head_object(Bucket=S3BUCKET, Key=key)
+        return True
+    except botocore.exceptions.ClientError as exc:
+        if exc.response['Error']['Code'] != '404':
+            return False
+        else:
+            raise
 
 
 def expandImageList(imageListString):
@@ -126,7 +156,8 @@ def gets3blob(s3imageKey):
     s3 = boto3.resource('s3')
     f = io.BytesIO()
     try:
-        s3.Bucket(S3BUCKET).download_file(s3imageKey, f)
+        s3.Bucket(S3BUCKET).download_fileobj(s3imageKey, f)
+        return f
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == '404':
             print('The object does not exist.')
@@ -139,12 +170,14 @@ def generateManifest(s3folderPrefix, imageListString):
     this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
     """
     res = []
-    for imageFileName in expandImageList(imageListString):
+    for imageFileName in expandImageList(imageListString)[:10]:
         s3imageKey = s3folderPrefix + imageFileName
         blob = gets3blob(s3imageKey)
-        dimensions = dimensionsFromBlobImage(blob)
-    # add filename and dimensions to res
-    pass
+        width, heigth = dimensionsFromBlobImage(blob)
+        dimensions = {"filename": imageFileName, "width": width, "height": heigth}
+        res.append(dimensions)
+
+    return res
 
 
 def dimensionsFromBlobImage(blob):
@@ -152,7 +185,10 @@ def dimensionsFromBlobImage(blob):
     this function returns a dict containing the heigth and width of the image
     the image is the binary blob returned by s3, an image library should be used to treat it
     please do not use the file system (saving as a file and then having the library read it)
+
     """
+    im = Image.open(blob)
+    return im.size
 
 
 def getVolumeInfos(workRID):
@@ -173,7 +209,6 @@ def getVolumeInfos(workRID):
         for line in info.split('\n')[1:]:
             _, l, g = line.replace('"', '').split(',')
             vi = VolInfo(l, g)
-            print('ok')
             vol_info.append(vi)
 
     return vol_info
