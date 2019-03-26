@@ -5,6 +5,7 @@ import hashlib
 import io
 import json
 import gzip
+import os
 
 import boto3
 import botocore
@@ -12,6 +13,7 @@ from PIL import Image
 
 S3BUCKET = "archive.tbrc.org"
 
+os['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
 
 def main():
     """
@@ -26,8 +28,9 @@ def manifestForList(filename):
     reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
     """
-    client = boto3.client('s3')
-    bucket = boto3.resource('s3').Bucket(S3BUCKET)
+    session = boto3.session(region_name='us-east-1')
+    client = session.client('s3')
+    bucket = session.resource('s3').Bucket(S3BUCKET)
     with open(filename, 'r') as f:
         for workRID in f.readlines():
             workRID = workRID.strip()
