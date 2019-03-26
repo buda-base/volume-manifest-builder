@@ -15,7 +15,7 @@ from PIL import Image
 
 S3BUCKET = "archive.tbrc.org"
 
-os['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
+os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
 
 def main():
     """
@@ -87,8 +87,8 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
     manifest_gzip = gzip_str(manifest_str)
 
     key = s3folderPrefix + 'dimensions.json'
-    print("writing "+key+"\n")
-    bucket.put_object(Key=key, Body=manifest_gzip, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'})
+    print("writing "+key)
+    bucket.put_object(Key=key, Body=manifest_gzip, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'}, Bucket=S3BUCKET)
 
 
 def getS3FolderPrefix(workRID, imageGroupID):
@@ -125,7 +125,7 @@ def manifestExists(client, s3folderPrefix):
         client.head_object(Bucket=S3BUCKET, Key=key)
         return True
     except botocore.exceptions.ClientError as exc:
-        if exc.response['Error']['Code'] != '404':
+        if exc.response['Error']['Code'] == '404':
             return False
         else:
             raise
