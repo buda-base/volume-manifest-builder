@@ -54,6 +54,7 @@ def manifestForVolume(client, bucket, workRID, vi):
     """
     s3folderPrefix = getS3FolderPrefix(workRID, vi.imageGroupID)
     if manifestExists(client, s3folderPrefix):
+        print("skip "+workRID+"-"+vi.imageGroupID)
         return
     manifest = generateManifest(bucket, s3folderPrefix, vi.imageList)
     uploadManifest(client, s3folderPrefix, manifest)
@@ -164,6 +165,7 @@ def gets3blob(bucket, s3imageKey):
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == '404':
             print('The object does not exist.')
+            return None
         else:
             raise
 
@@ -176,6 +178,9 @@ def generateManifest(bucket, s3folderPrefix, imageListString):
     for imageFileName in expandImageList(imageListString):
         s3imageKey = s3folderPrefix + imageFileName
         blob = gets3blob(bucket, s3imageKey)
+        if (blob is None):
+            print("Error: listed image "+imageFileName+" does not exist in "+s3folderPrefix)
+            continue
         width, heigth = dimensionsFromBlobImage(blob)
         dimensions = {"filename": imageFileName, "width": width, "height": heigth}
         res.append(dimensions)
