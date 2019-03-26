@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 from collections import namedtuple
 from urllib import request
@@ -85,7 +87,7 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
     manifest_gzip = gzip_str(manifest_str)
 
     key = s3folderPrefix + 'dimensions.json'
-    print("writing "+key)
+    print("writing "+key+"\n")
     bucket.put_object(Key=key, Body=manifest_gzip, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'})
 
 
