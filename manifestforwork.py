@@ -85,7 +85,7 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
     manifest_gzip = gzip_str(manifest_str)
 
     key = s3folderPrefix + 'dimensions.json'
-
+    print("writing "+key)
     bucket.put_object(Key=key, Body=manifest_gzip, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'})
 
 
