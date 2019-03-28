@@ -12,7 +12,6 @@ import os
 import boto3
 import botocore
 from PIL import Image
-from PIL import ImageFile
 
 S3BUCKET = "archive.tbrc.org"
 
@@ -57,7 +56,7 @@ def manifestForVolume(client, bucket, workRID, vi):
     if manifestExists(client, s3folderPrefix):
         print("skip "+workRID+"-"+vi.imageGroupID)
         return
-    manifest = generateManifest(bucket, s3folderPrefix, vi.imageList, client)
+    manifest = generateManifest(bucket, s3folderPrefix, vi.imageList)
     uploadManifest(client, s3folderPrefix, manifest)
 
 
@@ -158,15 +157,10 @@ def expandImageList(imageListString):
     return imageList
 
 
-def gets3blob(bucket, s3imageKey, client, endByte=None):
+def gets3blob(bucket, s3imageKey):
+    f = io.BytesIO()
     try:
-        f = None
-        if endByte is None:
-            f = io.BytesIO()
-            bucket.download_fileobj(s3imageKey, f)
-        else:
-            client.get_object(Bucket=S3BUCKET, Range='bytes=0-{}'.format(endByte))
-            f = resp['Body']
+        bucket.download_fileobj(s3imageKey, f)
         return f
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == '404':
@@ -175,6 +169,25 @@ def gets3blob(bucket, s3imageKey, client, endByte=None):
         else:
             raise
 
+
+def generateManifest(bucket, s3folderPrefix, imageListString):
+    """
+    this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
+    """
+    res = []
+    for imageFileName in expandImageList(imageListString):
+        s3imageKey = s3folderPrefix + imageFileName
+        blob = gets3blob(bucket, s3imageKey)
+        if (blob is None):
+            print("Error: listed image "+imageFileName+" does not exist in "+s3folderPrefix)
+            continue
+        width, heigth = dimensionsFromBlobImage(blob)
+        dimensions = {"filename": imageFileName, "width": width, "height": heigth}
+        res.append(dimensions)
+
+    return res
+
+
 def dimensionsFromBlobImage(blob):
     """
     this function returns a dict containing the heigth and width of the image
@@ -182,41 +195,9 @@ def dimensionsFromBlobImage(blob):
     please do not use the file system (saving as a file and then having the library read it)
 
     """
-    ImPar = ImageFile.Parser()
-    chunk = blob.read(2048)
-    count = 2048
-    while chunk != "":
-        ImPar.feed(chunk)
-        if ImPar.image:
-            break
-        chunk = blob.read(2048)
-        count += 2048
-    print("read "+str(count)+"to get image dimensions")
-    #im = Image.open(blob)
-    #return im.size
-    return ImPar.image.size
+    im = Image.open(blob)
+    return im.size
 
-def getSizeofKey(bucket, s3imageKey, client):
-    blob = gets3blob(bucket, s3imageKey, client)
-    if blob is None:
-        return None
-    size = dimensionsFromBlobImage(blob)
-
-def generateManifest(bucket, s3folderPrefix, imageListString, client):
-    """
-    this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
-    """
-    res = []
-    for imageFileName in expandImageList(imageListString):
-        s3imageKey = s3folderPrefix + imageFileName
-        size = getSizeofKey(bucket, s3imageKey, client)
-        if (size is None):
-            print("Error: listed image "+imageFileName+" does not exist in "+s3folderPrefix)
-            continue
-        dimensions = {"filename": imageFileName, "width": size[0], "height": size[1]}
-        res.append(dimensions)
-
-    return res
 
 def getVolumeInfos(workRID):
     """
