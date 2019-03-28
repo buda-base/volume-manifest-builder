@@ -30,7 +30,7 @@ def manifestForList(filename):
     reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
     """
-    session = boto3.session(region_name='us-east-1')
+    session = boto3.session.Session(region_name='us-east-1')
     client = session.client('s3')
     bucket = session.resource('s3').Bucket(S3BUCKET)
     with open(filename, 'r') as f:
