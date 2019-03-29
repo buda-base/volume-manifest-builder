@@ -181,22 +181,33 @@ def generateManifest(bucket, s3folderPrefix, imageListString):
         if (blob is None):
             print("Error: listed image "+imageFileName+" does not exist in "+s3folderPrefix)
             continue
-        width, heigth = dimensionsFromBlobImage(blob)
-        dimensions = {"filename": imageFileName, "width": width, "height": heigth}
-        res.append(dimensions)
+        imgdata = dataFromBlobImage(blob)
+        imgdata["filename"] = imageFileName
+        res.append(imgdata)
 
     return res
 
 
-def dimensionsFromBlobImage(blob):
+def dataFromBlobImage(blob):
     """
-    this function returns a dict containing the heigth and width of the image
+    This function returns a dict containing the heigth and width of the image
     the image is the binary blob returned by s3, an image library should be used to treat it
     please do not use the file system (saving as a file and then having the library read it)
 
+    This could be coded in a faster way, but the faster way doesn't work with group4 tiff:
+    https://github.com/python-pillow/Pillow/issues/3756
+
+    For pilmode, see
+    https://pillow.readthedocs.io/en/5.1.x/handbook/concepts.html#concept-modes
+
+    They are different from the Java ones:
+    https://docs.oracle.com/javase/8/docs/api/java/awt/image/BufferedImage.html
+
+    but they should be enough. Note that there's no 16 bit
     """
     im = Image.open(blob)
-    return im.size
+
+    return {"width": im.width, "height": im.height, "pilmode": im.mode}
 
 
 def getVolumeInfos(workRID):
