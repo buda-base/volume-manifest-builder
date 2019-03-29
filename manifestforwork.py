@@ -15,7 +15,7 @@ from PIL import Image
 
 S3BUCKET = "archive.tbrc.org"
 
-os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
+#os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
 
 def main():
     """
@@ -55,7 +55,7 @@ def manifestForVolume(client, bucket, workRID, vi):
     s3folderPrefix = getS3FolderPrefix(workRID, vi.imageGroupID)
     if manifestExists(client, s3folderPrefix):
         print("skip "+workRID+"-"+vi.imageGroupID)
-        return
+        #return
     manifest = generateManifest(bucket, s3folderPrefix, vi.imageList)
     uploadManifest(client, s3folderPrefix, manifest)
 
@@ -205,9 +205,15 @@ def dataFromBlobImage(blob):
 
     but they should be enough. Note that there's no 16 bit
     """
+    size = blob.getbuffer().nbytes
     im = Image.open(blob)
+    res = {"width": im.width, "height": im.height, "pilmode": im.mode}
+    # we indicate sizes of the more than 1MB
+    if size > 1000000:
+        res["size"] = size
+    # in case of an uncompressed raw, im.info.compression == "raw"
 
-    return {"width": im.width, "height": im.height, "pilmode": im.mode}
+    return res
 
 
 def getVolumeInfos(workRID):
