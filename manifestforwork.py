@@ -8,14 +8,28 @@ import io
 import json
 import gzip
 import os
+import csv
+
+from threading import Lock
 
 import boto3
 import botocore
 from PIL import Image
 
+csvlock = Lock()
+
 S3BUCKET = "archive.tbrc.org"
 
 #os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
+
+def report_error(csvwriter, csvline):
+   """
+   write the error in a synchronous way
+   """
+   global csvlock
+   lock.acquire()
+   csvwriter.writerow(csvline)
+   lock.release()
 
 def main():
     """
@@ -33,30 +47,32 @@ def manifestForList(filename):
     session = boto3.session.Session(region_name='us-east-1')
     client = session.client('s3')
     bucket = session.resource('s3').Bucket(S3BUCKET)
-    with open(filename, 'r') as f:
-        for workRID in f.readlines():
-            workRID = workRID.strip()
-            manifestForWork(client, bucket, workRID)
+    with open("errors.csv", 'w+', newline='') as csvf:
+        csvwriter = csv.writer(csvf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+        with open(filename, 'r') as f:
+            for workRID in f.readlines():
+                workRID = workRID.strip()
+                manifestForWork(client, bucket, workRID, csvwriter)
 
 
-def manifestForWork(client, bucket, workRID):
+def manifestForWork(client, bucket, workRID, csvwriter):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """
     volumeInfos = getVolumeInfos(workRID)
     for vi in volumeInfos:
-        manifestForVolume(client, bucket, workRID, vi)
+        manifestForVolume(client, bucket, workRID, vi, csvwriter)
 
 
-def manifestForVolume(client, bucket, workRID, vi):
+def manifestForVolume(client, bucket, workRID, vi, csvwriter):
     """
     this function generates the manifest for an image group of a work (example: I0886 in W22084)
     """
     s3folderPrefix = getS3FolderPrefix(workRID, vi.imageGroupID)
     if manifestExists(client, s3folderPrefix):
-        print("skip "+workRID+"-"+vi.imageGroupID)
+        print("manifest exists: "+workRID+"-"+vi.imageGroupID)
         #return
-    manifest = generateManifest(bucket, s3folderPrefix, vi.imageList)
+    manifest = generateManifest(bucket, s3folderPrefix, vi.imageList, csvwriter)
     uploadManifest(client, s3folderPrefix, manifest)
 
 
@@ -169,26 +185,30 @@ def gets3blob(bucket, s3imageKey):
         else:
             raise
 
+def fillData(bucket, s3imageKey, csvwriter, imgdata):
+    blob = gets3blob(bucket, s3imageKey)
+    if (blob is None):
+        csvline = [s3imageKey, "", "", "", "", "", "", "keydoesnotexist"]
+        report_error(csvwriter, csvline)
+        return
+    fillDataWithBlobImage(blob, imgdata, csvwriter, s3imageKey)
 
-def generateManifest(bucket, s3folderPrefix, imageListString):
+
+def generateManifest(bucket, s3folderPrefix, imageListString, csvwriter):
     """
     this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
     """
     res = []
     for imageFileName in expandImageList(imageListString):
         s3imageKey = s3folderPrefix + imageFileName
-        blob = gets3blob(bucket, s3imageKey)
-        if (blob is None):
-            print("Error: listed image "+imageFileName+" does not exist in "+s3folderPrefix)
-            continue
-        imgdata = dataFromBlobImage(blob)
-        imgdata["filename"] = imageFileName
+        imgdata = {"filename": imageFileName}
         res.append(imgdata)
+        fillData(bucket, s3imageKey, csvwriter, imgdata)
 
     return res
 
 
-def dataFromBlobImage(blob):
+def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey):
     """
     This function returns a dict containing the heigth and width of the image
     the image is the binary blob returned by s3, an image library should be used to treat it
@@ -205,16 +225,36 @@ def dataFromBlobImage(blob):
 
     but they should be enough. Note that there's no 16 bit
     """
+    errors = []
     size = blob.getbuffer().nbytes
     im = Image.open(blob)
-    res = {"width": im.width, "height": im.height, "pilmode": im.mode}
+    data["width"] = im.width
+    data["height"] = im.height
+    data["pilmode"] = im.mode
     # we indicate sizes of the more than 1MB
     if size > 1000000:
-        res["size"] = size
+        data["size"] = size
+    if size > 400000:
+        errors.append("toolarge")
+    compression = ""
+    final4 = s3imageKey[-4:].lower()
+    if im.format == "TIFF":
+        compression = im.info["compression"]
+        if im.info["compression"] != "group4":
+            errors.append("tiffnotgroup4")
+        if im.mode != "1":
+            errors.append("nonbinarytif")
+        if final4 != ".tif" and final4 != "tiff":
+            errors.append("extformatmismatch")
+    elif im.format == "JPEG":
+        if final4 != ".jpg" and final4 != "jpeg":
+            errors.append("extformatmismatch")
+    else:
+        errors.append("invalidformat")
     # in case of an uncompressed raw, im.info.compression == "raw"
-
-    return res
-
+    if errors:
+        csvline = [s3imageKey, im.width, im.height, im.mode, im.format, im.palette, compression, "-".join(errors)]
+        report_error(csvwriter, csvline)
 
 def getVolumeInfos(workRID):
     """
