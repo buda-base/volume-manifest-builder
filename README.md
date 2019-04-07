@@ -5,7 +5,7 @@ Internal tool to create json manifests for volumes present in S3 for the IIIF pr
 ### Dependencies
 
 ```
-pip install pillow boto3
+pip install pillow boto3 s3transfer
 ```
 
 ### Use

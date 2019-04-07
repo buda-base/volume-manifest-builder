@@ -16,6 +16,10 @@ import boto3
 import botocore
 from PIL import Image
 
+from s3transfer.subscribers import BaseSubscriber
+from boto3.s3.transfer import S3Transfer
+from s3customtransfer import S3CustomTransfer
+
 csvlock = Lock()
 
 S3BUCKET = "archive.tbrc.org"
@@ -72,7 +76,7 @@ def manifestForVolume(client, bucket, workRID, vi, csvwriter):
     if manifestExists(client, s3folderPrefix):
         print("manifest exists: "+workRID+"-"+vi.imageGroupID)
         #return
-    manifest = generateManifest(bucket, s3folderPrefix, vi.imageList, csvwriter)
+    manifest = generateManifest(bucket, client, s3folderPrefix, vi.imageList, csvwriter)
     uploadManifest(client, s3folderPrefix, manifest)
 
 
@@ -180,31 +184,52 @@ def gets3blob(bucket, s3imageKey):
         return f
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == '404':
-            print('The object does not exist.')
             return None
         else:
             raise
 
-def fillData(bucket, s3imageKey, csvwriter, imgdata):
-    blob = gets3blob(bucket, s3imageKey)
-    if (blob is None):
-        csvline = [s3imageKey, "", "", "", "", "", "", "keydoesnotexist"]
-        report_error(csvwriter, csvline)
-        return
-    fillDataWithBlobImage(blob, imgdata, csvwriter, s3imageKey)
+class DoneCallback(object):
+    def __init__(self, filename, imgdata, csvwriter, s3imageKey):
+        self._filename = filename
+        self._imgdata = imgdata
+        self._csvwriter = csvwriter
+        self._s3imageKey = s3imageKey
 
+    def __call__(self):
+        fillDataWithBlobImage(self._filename, self._imgdata, self._csvwriter, self._s3imageKey)
+        
 
-def generateManifest(bucket, s3folderPrefix, imageListString, csvwriter):
+def fillData(bucket, client, transfer, s3imageKey, csvwriter, imgdata):
+    filename = io.BytesIO()
+    print("start transfer of "+s3imageKey)
+    try:
+        transfer.download_file(S3BUCKET, s3imageKey, filename, callback=DoneCallback(filename, imgdata, csvwriter, s3imageKey))
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            csvline = [s3imageKey, "", "", "", "", "", "", "keydoesnotexist"]
+            report_error(csvwriter, csvline)
+        else:
+            raise
+
+def generateManifest(bucket, client, s3folderPrefix, imageListString, csvwriter):
     """
     this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
     """
     res = []
+    transfer = S3CustomTransfer(client)
+    i = 0
     for imageFileName in expandImageList(imageListString):
+        i += 1
         s3imageKey = s3folderPrefix + imageFileName
         imgdata = {"filename": imageFileName}
         res.append(imgdata)
-        fillData(bucket, s3imageKey, csvwriter, imgdata)
+        fillData(bucket, client, transfer, s3imageKey, csvwriter, imgdata)
+        #if i > 3:
+        #    break
 
+    print("begin waiting")
+    transfer.wait()
+    print("finish waiting")
     return res
 
 
@@ -255,6 +280,7 @@ def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey):
     if errors:
         csvline = [s3imageKey, im.width, im.height, im.mode, im.format, im.palette, compression, "-".join(errors)]
         report_error(csvwriter, csvline)
+    print(data)
 
 def getVolumeInfos(workRID):
     """
