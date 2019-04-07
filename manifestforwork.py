@@ -33,6 +33,7 @@ def report_error(csvwriter, csvline):
    global csvlock
    lock.acquire()
    csvwriter.writerow(csvline)
+   print(",".join(csvline))
    lock.release()
 
 def main():
