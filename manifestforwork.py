@@ -24,7 +24,7 @@ csvlock = Lock()
 
 S3BUCKET = "archive.tbrc.org"
 
-#os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
+os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
 
 def report_error(csvwriter, csvline):
    """
@@ -201,7 +201,6 @@ class DoneCallback(object):
 
 def fillData(bucket, client, transfer, s3imageKey, csvwriter, imgdata):
     filename = io.BytesIO()
-    print("start transfer of "+s3imageKey)
     try:
         transfer.download_file(S3BUCKET, s3imageKey, filename, callback=DoneCallback(filename, imgdata, csvwriter, s3imageKey))
     except botocore.exceptions.ClientError as e:
@@ -224,12 +223,8 @@ def generateManifest(bucket, client, s3folderPrefix, imageListString, csvwriter)
         imgdata = {"filename": imageFileName}
         res.append(imgdata)
         fillData(bucket, client, transfer, s3imageKey, csvwriter, imgdata)
-        #if i > 3:
-        #    break
 
-    print("begin waiting")
     transfer.wait()
-    print("finish waiting")
     return res
 
 
@@ -280,7 +275,6 @@ def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey):
     if errors:
         csvline = [s3imageKey, im.width, im.height, im.mode, im.format, im.palette, compression, "-".join(errors)]
         report_error(csvwriter, csvline)
-    print(data)
 
 def getVolumeInfos(workRID):
     """
