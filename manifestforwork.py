@@ -205,7 +205,7 @@ def fillData(bucket, client, transfer, s3imageKey, csvwriter, imgdata):
         transfer.download_file(S3BUCKET, s3imageKey, filename, callback=DoneCallback(filename, imgdata, csvwriter, s3imageKey))
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == '404':
-            csvline = [s3imageKey, "", "", "", "", "", "", "keydoesnotexist"]
+            csvline = [s3imageKey, "", "", "", "", "", "", "", "keydoesnotexist"]
             report_error(csvwriter, csvline)
         else:
             raise
@@ -271,7 +271,7 @@ def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey):
         errors.append("invalidformat")
     # in case of an uncompressed raw, im.info.compression == "raw"
     if errors:
-        csvline = [s3imageKey, im.width, im.height, im.mode, im.format, im.palette, compression, "-".join(errors)]
+        csvline = [s3imageKey, size, im.width, im.height, im.mode, im.format, im.palette, compression, "-".join(errors)]
         report_error(csvwriter, csvline)
 
 def getVolumeInfos(workRID):
