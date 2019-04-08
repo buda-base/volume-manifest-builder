@@ -31,10 +31,9 @@ def report_error(csvwriter, csvline):
    write the error in a synchronous way
    """
    global csvlock
-   lock.acquire()
+   csvlock.acquire()
    csvwriter.writerow(csvline)
-   print(",".join(csvline))
-   lock.release()
+   csvlock.release()
 
 def main():
     """
@@ -217,9 +216,7 @@ def generateManifest(bucket, client, s3folderPrefix, imageListString, csvwriter)
     """
     res = []
     transfer = S3CustomTransfer(client)
-    i = 0
     for imageFileName in expandImageList(imageListString):
-        i += 1
         s3imageKey = s3folderPrefix + imageFileName
         imgdata = {"filename": imageFileName}
         res.append(imgdata)
