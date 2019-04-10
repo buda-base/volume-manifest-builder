@@ -54,7 +54,7 @@ def manifestForList(filename):
     errorsfilename = "errors-"+os.path.basename(filename)+".csv"
     with open(errorsfilename, 'w+', newline='') as csvf:
         csvwriter = csv.writer(csvf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        csvwriter.writeline(["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette", "compression", "errors"])
+        csvwriter.writerow(["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette", "compression", "errors"])
         with open(filename, 'r') as f:
             for workRID in f.readlines():
                 workRID = workRID.strip()
