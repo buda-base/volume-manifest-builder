@@ -24,7 +24,7 @@ csvlock = Lock()
 
 S3BUCKET = "archive.tbrc.org"
 
-os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
+# os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
 
 def report_error(csvwriter, csvline):
    """
@@ -54,7 +54,7 @@ def manifestForList(filename):
     errorsfilename = "errors-"+os.path.basename(filename)+".csv"
     with open(errorsfilename, 'w+', newline='') as csvf:
         csvwriter = csv.writer(csvf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        csvwriter.writeline(["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette", "compression", "errors"])
+        csvwriter.writerow(["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette", "compression", "errors"])
         with open(filename, 'r') as f:
             for workRID in f.readlines():
                 workRID = workRID.strip()
@@ -106,6 +106,9 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
           - ContentEncoding='gzip'
           - key: s3folderPrefix+"dimensions.json" (making sure there is a /)
     """
+
+    # jimk: for capacity testing
+    return
     manifest_str = json.dumps(manifestObject)
     manifest_gzip = gzip_str(manifest_str)
 
