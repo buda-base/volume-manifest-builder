@@ -1,7 +1,10 @@
 import abc
-from urllib import request
 import collections
+from urllib import request
+
 from boto3 import client
+from botocore.paginate import Paginator
+
 import getS3FolderPrefix
 
 VolInfo = collections.namedtuple('VolInfo', ['imageList', 'imageGroupID'])
@@ -13,15 +16,18 @@ class GetVolumeInfoBase(metaclass=abc.ABCMeta):
     Passes request off to subclasses
     """
 
-    botoClient: object = None
+    boto_client: client = None
 
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html
-    botoPaginator: object = None
+    boto_paginator: Paginator = None
 
-    def __init__(self, botoClient: client):
-        self.botoClient = botoClient
-        self.botoPaginator = self.botoClient.get_paginator('list_objects_v2')
-
+    def __init__(self, boto_client: client):
+        """
+        :param boto_client: context for operations
+        :type boto_client: boto3.client
+        """
+        self.boto_client = boto_client
+        self.boto_paginator = self.boto_client.get_paginator('list_objects_v2')
 
     @abc.abstractmethod
     def fetch(self, urlRequest):
@@ -42,7 +48,6 @@ class getVolumeInfosBUDA(GetVolumeInfoBase):
     The information should be fetched (in csv or json) from lds-pdi, query for W22084 for instance is:
     http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:W22084&format=csv&profile=simple&pageSize=500
     """
-
 
     def fetch(self, workRid: str):
         """
@@ -72,14 +77,15 @@ class getVolumeInfoseXist(GetVolumeInfoBase):
     http://www.tbrc.org/public?module=work&query=work-igs&arg=WorkRid
     """
 
+    def fetch(self, work_rid: str):
+        """
+        :param work_rid: Resource id
+        :type work_rid: object
+        """
 
-    def fetch(self, workRid: str):
-        vol_info = []
-
-        # Interesting first pass failure:
-        # @ urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:777)>
-        # Tried fix
-        req = f'http://www.tbrc.org/public?module=work&query=work-igs&args={workRid}'
+        # Interesting first pass failure: @ urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED]
+        # certificate verify failed (_ssl.c:777)> Tried fix
+        req = f'http://www.tbrc.org/public?module=work&query=work-igs&args={work_rid}'
 
         from lxml import etree
         with request.urlopen(req) as response:
@@ -88,20 +94,21 @@ class getVolumeInfoseXist(GetVolumeInfoBase):
 
             # work-igs returns one node with space delimited list of image groups
             igs: str = etree.fromstring(info).text.split(" ")
-            vol_info = self.expand_groups(workRid,igs)
+            vol_info = self.expand_groups(work_rid, igs)
 
         return vol_info
 
-    def expand_groups(self, workRid, imageGroups):
+    def expand_groups(self, work_rid: str, image_groups: []) -> object:
         """
         expands an image group into a list of its files
-        :param workRid: work resource Id
-        :param imageGroups: Image Groups to expand
+        :type image_groups: []
+        :param work_rid: work resource Id
+        :param image_groups: Image Groups to expand
         :return: VolInfo[] of all the images in all imagegroups in the input
         """
-        vi=[]
-        for ig in imageGroups:
-            vol_infos = self.getImageNames(workRid,ig)
+        vi = []
+        for ig in image_groups:
+            vol_infos = self.get_image_names(work_rid, ig)
             vi.append(VolInfo(vol_infos, ig))
 
         return vi

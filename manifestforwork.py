@@ -2,27 +2,25 @@
 import argparse
 import csv
 import gzip
-import hashlib
 import io
 import json
 import os
-import sys
-from collections import namedtuple
+from tempfile import NamedTemporaryFile
 from threading import Lock
-from urllib import request
-import getS3FolderPrefix
 
 import boto3
 import botocore
 from PIL import Image
 
+import getS3FolderPrefix
+from S3WorkFileManager import S3WorkFileManager
 from s3customtransfer import S3CustomTransfer
 
 csvlock: Lock = Lock()
 
 S3BUCKET = "archive.tbrc.org"
 
-# jimk Toggle trad and new sources
+# jimk Toggle legacy and new sources
 BUDA_IMAGE_GROUP = False
 
 
@@ -304,7 +302,7 @@ def getVolumeInfos(workRid: str, botoClient : object):
     :param botoClient: handle to AWS
     :return: VolList[imagegroup1..imagegroupn]
     """
-    from GetVolumeInfos import getVolumeInfosBUDA, getVolumeInfoseXist, GetVolumeInfoBase
+    from GetVolumeInfos import getVolumeInfosBUDA, getVolumeInfoseXist
     if BUDA_IMAGE_GROUP:
         return (getVolumeInfosBUDA(botoClient)).fetch(workRid)
 
