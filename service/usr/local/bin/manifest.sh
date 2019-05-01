@@ -12,9 +12,8 @@ PID_FILE=~/tmp/${SERVICE_SH}.pid
 function d_start()
 {
 	echo "${SERVICE_NAME}: starting service"
-	/usr/local/bin/${SERVICE_SH} ${PID_FILE}  >> ~/tmp/con 2>&1  &
+	/usr/local/bin/${SERVICE_SH} ${PID_FILE}  >> ~/tmp/con 2>&1
 
-    echo  "PID is $(cat $PID_FILE)"
 }
 
 function d_stop()

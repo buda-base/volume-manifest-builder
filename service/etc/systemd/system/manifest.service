@@ -1,0 +1,15 @@
+# systemd for manifest service
+#
+[Unit]
+Description = Image Manifest Service
+
+[Service]
+ExecStart=/usr/local/bin/manifest.sh start
+ExecReload=/usr/local/bin/manifest.sh reload
+ExecStop=/usr/local/bin/manifest.sh stop
+#
+# nothing special needed
+User=ubuntu
+
+[Install]
+Alias=imanserv

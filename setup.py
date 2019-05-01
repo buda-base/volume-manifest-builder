@@ -1,3 +1,6 @@
+# #!/usr/bin/python3
+# jimk: remote machines need the above line when building console scripts which will
+# be installed on machines which also require python 2 in their path
 from setuptools import setup
 
 setup(name='volume-manifest-tool', version='1.0', packages=[''],
