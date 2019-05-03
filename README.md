@@ -36,7 +36,14 @@ pip3 install pillow boto3 s3transfer
     - manifestFromS3 
     in your path.  
     **Be sure you are installing under python 3. Use the exact command above.**
-- Credentials: you must have the input credentials for a specific AWS user installed to deposit into the archives.  
+- Credentials: you must have the input credentials for a specific AWS user installed to deposit into the archives.
+
+## Building a distribution
+Following good practice, we don't distribute the egg above. You can build the distribution by downloading from guthub, and, from the resulting directory:
+```bash
+python3 setup.py bdist_egg
+```
+## Usage
 ### Command line usage
 #### Local disk input
 
@@ -97,7 +104,7 @@ For example, if you ran this:
 aws s3 cp 20190430 s3://manifest.bdrc.org/processing/todo/ && aws ec2 start-instances --launch-template LaunchTemplateId=1234567890abcdef
 ```
 
-and the instance-id which came back from the `ec2 start-instances` was `i-04f3e0c7d460e792f` you will see the original file and instance name in  `s3://manifest.bdrc.org/processing/`**inprocess/**
+and the instance-id which came back from the `ec2 start-instances` was `i-04f3e0c7d460e792f` you will see the original file and instance name in  `s3://manifest.bdrc.org/processing/` **inprocess/**
 
 ```
 jimk@Tseng:backlog$ aws s3 ls s3://manifest.bdrc.org/processing/inprocess/
