@@ -289,7 +289,7 @@ def getVolumeInfos(workRID):
     """
     VolInfo = namedtuple('VolInfo', ['imageList', 'imageGroupID'])
     vol_info = []
-    req = 'http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:{}&format=csv&profile=simple&pageSize=500'.format(workRID)
+    req = 'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:{}&format=csv&profile=simple&pageSize=500'.format(workRID)
     with request.urlopen(req) as response:
         info = response.read()
         info = info.decode('utf8').strip()
