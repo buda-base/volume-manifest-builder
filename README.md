@@ -101,10 +101,10 @@ If you provide it an input file, it will run while it's processing it. You can v
 For example, if you ran this: 
 
 ```
-aws s3 cp 20190430 s3://manifest.bdrc.org/processing/todo/ && aws ec2 start-instances --launch-template LaunchTemplateId=1234567890abcdef
+aws s3 cp 20190430 s3://manifest.bdrc.org/processing/todo/ && aws ec2 launch-instances --launch-template LaunchTemplateId=lt-0291d00e28fefc2bc
 ```
 
-and the instance-id which came back from the `ec2 start-instances` was `i-04f3e0c7d460e792f` you will see the original file and instance name in  `s3://manifest.bdrc.org/processing/` **inprocess/**
+and the instance-id which came back from the `ec2 launch-instances` was `i-04f3e0c7d460e792f` you will see the original file and instance name in  `s3://manifest.bdrc.org/processing/` **inprocess/**
 
 ```
 jimk@Tseng:backlog$ aws s3 ls s3://manifest.bdrc.org/processing/inprocess/
