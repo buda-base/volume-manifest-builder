@@ -97,8 +97,12 @@ def manifestForWork(client, bucket, workRID, csvwriter):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """
-    volumeInfos = getVolumeInfos(workRID, client)
-    for vi in volumeInfos:
+    vol_infos: [] = getVolumeInfos(workRID, client)
+    if (len(vol_infos) == 0):
+        print(f"Could not find image groups for {workRID}")
+        return
+
+    for vi in vol_infos:
         manifestForVolume(client, bucket, workRID, vi, csvwriter)
 
 
@@ -296,18 +300,23 @@ def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey, workRID, imageGroup
 
 def getVolumeInfos(workRid: str, botoClient : object):
     """
-    Seslects which data source to use for volume info
+    Tries data sources for image group info. If BUDA_IMAGE_GROUP global is set, prefers
+    BUDA source, tries eXist on BUDA fail.
     :type workRid: str
     :param workRid: Work identifier
     :param botoClient: handle to AWS
     :return: VolList[imagegroup1..imagegroupn]
     """
     from GetVolumeInfos import getVolumeInfosBUDA, getVolumeInfoseXist
+
+    vol_infos: [] = []
     if BUDA_IMAGE_GROUP:
-        return (getVolumeInfosBUDA(botoClient)).fetch(workRid)
+        vol_infos = (getVolumeInfosBUDA(botoClient)).fetch(workRid)
 
-    return (getVolumeInfoseXist(botoClient)).fetch(workRid)
+    if (len(vol_infos) == 0):
+        vol_infos = (getVolumeInfoseXist(botoClient)).fetch(workRid)
 
+    return vol_infos
 
 if __name__ == '__main__':
     main()

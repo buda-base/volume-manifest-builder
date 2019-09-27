@@ -30,7 +30,7 @@ class GetVolumeInfoBase(metaclass=abc.ABCMeta):
         self.boto_paginator = self.boto_client.get_paginator('list_objects_v2')
 
     @abc.abstractmethod
-    def fetch(self, urlRequest):
+    def fetch(self, urlRequest) -> []:
         """
         Subclasses implement
         :param urlRequest:
@@ -49,7 +49,7 @@ class getVolumeInfosBUDA(GetVolumeInfoBase):
     http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:W22084&format=csv&profile=simple&pageSize=500
     """
 
-    def fetch(self, workRid: str):
+    def fetch(self, workRid: str) -> []:
         """
         BUDA LDS-PDU implementation
         :return: VolInfo[]
@@ -77,7 +77,7 @@ class getVolumeInfoseXist(GetVolumeInfoBase):
     http://www.tbrc.org/public?module=work&query=work-igs&arg=WorkRid
     """
 
-    def fetch(self, work_rid: str):
+    def fetch(self, work_rid: str) -> []:
         """
         :param work_rid: Resource id
         :type work_rid: object
@@ -87,14 +87,19 @@ class getVolumeInfoseXist(GetVolumeInfoBase):
         # certificate verify failed (_ssl.c:777)> Tried fix
         req = f'http://www.tbrc.org/public?module=work&query=work-igs&args={work_rid}'
 
+        vol_info = []
         from lxml import etree
-        with request.urlopen(req) as response:
-            info = response.read()
-            info = info.decode('utf8').strip()
+        try:
 
-            # work-igs returns one node with space delimited list of image groups
-            igs: str = etree.fromstring(info).text.split(" ")
-            vol_info = self.expand_groups(work_rid, igs)
+            with request.urlopen(req) as response:
+                info = response.read()
+                info = info.decode('utf8').strip()
+
+                # work-igs returns one node with space delimited list of image groups
+                igs: str = etree.fromstring(info).text.split(" ")
+                vol_info = self.expand_groups(work_rid, igs)
+        except:
+            pass
 
         return vol_info
 
