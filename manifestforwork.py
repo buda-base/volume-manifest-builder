@@ -1,47 +1,77 @@
 #!/usr/bin/env python3
-
-import sys
-from collections import namedtuple
-from urllib import request
-import hashlib
+import argparse
+import csv
+import gzip
 import io
 import json
-import gzip
 import os
-import csv
-
+from tempfile import NamedTemporaryFile
 from threading import Lock
 
 import boto3
 import botocore
 from PIL import Image
 
-from s3transfer.subscribers import BaseSubscriber
-from boto3.s3.transfer import S3Transfer
+import getS3FolderPrefix
+from S3WorkFileManager import S3WorkFileManager
 from s3customtransfer import S3CustomTransfer
 
-csvlock = Lock()
+csvlock: Lock = Lock()
 
 S3BUCKET = "archive.tbrc.org"
 
-os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
+# jimk Toggle legacy and new sources
+BUDA_IMAGE_GROUP = False
+
+
+# os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
 
 def report_error(csvwriter, csvline):
-   """
+    """
    write the error in a synchronous way
    """
-   global csvlock
-   csvlock.acquire()
-   csvwriter.writerow(csvline)
-   csvlock.release()
+    global csvlock
+    csvlock.acquire()
+    csvwriter.writerow(csvline)
+    csvlock.release()
+
 
 def main():
     """
     reads the first argument of the command line and pass it as filename to the manifestForList function
     """
     # manifestForList('RIDs.txt') # uncomment to test locally
+    print("starting...")
+    manifestShell()
     manifestForList(sys.argv[1])
 
+def manifestShell():
+    """
+    Prepares args for
+    :return:
+    """
+    args = GetArgs()
+    parse_args(args)
+    manifestForList(args.sourceFile)
+
+
+class GetArgs:
+    """
+    instantiates command line argument container
+    """
+    pass
+
+def parse_args(arg_namespace: object) -> None:
+    """
+    :rtype: object
+    :param arg_namespace. class which holds arg values
+    """
+    _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions", usage="%(prog)s sourcefile.")
+
+    _parser.add_argument("sourceFile", help="File containing one RID per line.")
+
+    # noinspection PyTypeChecker
+    _parser.parse_args(namespace=arg_namespace)
 
 def manifestForList(filename):
     """
@@ -51,10 +81,12 @@ def manifestForList(filename):
     session = boto3.session.Session(region_name='us-east-1')
     client = session.client('s3')
     bucket = session.resource('s3').Bucket(S3BUCKET)
-    errorsfilename = "errors-"+os.path.basename(filename)+".csv"
+    errorsfilename = "errors-" + os.path.basename(filename) + ".csv"
     with open(errorsfilename, 'w+', newline='') as csvf:
         csvwriter = csv.writer(csvf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        csvwriter.writerow(["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette", "compression", "errors"])
+        csvwriter.writerow(
+            ["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette",
+             "compression", "errors"])
         with open(filename, 'r') as f:
             for workRID in f.readlines():
                 workRID = workRID.strip()
@@ -65,7 +97,7 @@ def manifestForWork(client, bucket, workRID, csvwriter):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """
-    volumeInfos = getVolumeInfos(workRID)
+    volumeInfos = getVolumeInfos(workRID, client)
     for vi in volumeInfos:
         manifestForVolume(client, bucket, workRID, vi, csvwriter)
 
@@ -74,10 +106,10 @@ def manifestForVolume(client, bucket, workRID, vi, csvwriter):
     """
     this function generates the manifest for an image group of a work (example: I0886 in W22084)
     """
-    s3folderPrefix = getS3FolderPrefix(workRID, vi.imageGroupID)
+
+    s3folderPrefix = getS3FolderPrefix.getS3FolderPrefix(workRID, vi.imageGroupID)
     if manifestExists(client, s3folderPrefix):
-        print("manifest exists: "+workRID+"-"+vi.imageGroupID)
-        #return
+        print("manifest exists: " + workRID + "-" + vi.imageGroupID)  # return
     manifest = generateManifest(bucket, client, s3folderPrefix, vi.imageList, csvwriter, workRID, vi.imageGroupID)
     uploadManifest(client, s3folderPrefix, manifest)
 
@@ -106,37 +138,15 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
           - ContentEncoding='gzip'
           - key: s3folderPrefix+"dimensions.json" (making sure there is a /)
     """
+
     manifest_str = json.dumps(manifestObject)
     manifest_gzip = gzip_str(manifest_str)
 
     key = s3folderPrefix + 'dimensions.json'
-    print("writing "+key)
-    bucket.put_object(Key=key, Body=manifest_gzip, Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'}, Bucket=S3BUCKET)
+    print("writing " + key)
+    bucket.put_object(Key=key, Body=manifest_gzip,
+                      Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'}, Bucket=S3BUCKET)
 
-
-def getS3FolderPrefix(workRID, imageGroupID):
-    """
-    gives the s3 prefix (~folder) in which the volume will be present.
-    inpire from https://github.com/buda-base/buda-iiif-presentation/blob/master/src/main/java/io/bdrc/iiif/presentation/ImageInfoListService.java#L73
-    Example:
-       - workRID=W22084, imageGroupID=I0886
-       - result = "Works/60/W22084/images/W22084-0886/
-    where:
-       - 60 is the first two characters of the md5 of the string W22084
-       - 0886 is:
-          * the image group ID without the initial "I" if the image group ID is in the form I\d\d\d\d
-          * or else the full image group ID (incuding the "I")
-    """
-    md5 = hashlib.md5(str.encode(workRID))
-    two = md5.hexdigest()[:2]
-
-    pre, rest = imageGroupID[0], imageGroupID[1:]
-    if pre == 'I' and rest.isdigit() and len(rest) == 4:
-        suffix = rest
-    else:
-        suffix = imageGroupID
-
-    return 'Works/{two}/{RID}/images/{RID}-{suffix}/'.format(two=two, RID=workRID, suffix=suffix)
 
 
 def manifestExists(client, s3folderPrefix):
@@ -169,7 +179,7 @@ def expandImageList(imageListString):
         if ':' in s:
             name, count = s.split(':')
             dot = name.find('.')
-            prefix, num, ext = name[:dot-4], name[dot-4:dot], name[dot:]
+            prefix, num, ext = name[:dot - 4], name[dot - 4:dot], name[dot:]
             for i in range(int(count)):
                 incremented = str(int(num) + i).zfill(len(num))
                 imageList.append('{}{}{}'.format(prefix, incremented, ext))
@@ -190,6 +200,7 @@ def gets3blob(bucket, s3imageKey):
         else:
             raise
 
+
 class DoneCallback(object):
     def __init__(self, filename, imgdata, csvwriter, s3imageKey, workRID, imageGroupID):
         self._filename = filename
@@ -200,19 +211,22 @@ class DoneCallback(object):
         self._imageGroupID = imageGroupID
 
     def __call__(self):
-        fillDataWithBlobImage(self._filename, self._imgdata, self._csvwriter, self._s3imageKey, self._workRID, self._imageGroupID)
-        
+        fillDataWithBlobImage(self._filename, self._imgdata, self._csvwriter, self._s3imageKey, self._workRID,
+                              self._imageGroupID)
+
 
 def fillData(bucket, client, transfer, s3imageKey, csvwriter, imgdata, workRID, imageGroupID):
     filename = io.BytesIO()
     try:
-        transfer.download_file(S3BUCKET, s3imageKey, filename, callback=DoneCallback(filename, imgdata, csvwriter, s3imageKey, workRID, imageGroupID))
+        transfer.download_file(S3BUCKET, s3imageKey, filename,
+                               callback=DoneCallback(filename, imgdata, csvwriter, s3imageKey, workRID, imageGroupID))
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == '404':
             csvline = [s3imageKey, workRID, imageGroupID, "", "", "", "", "", "", "", "keydoesnotexist"]
             report_error(csvwriter, csvline)
         else:
             raise
+
 
 def generateManifest(bucket, client, s3folderPrefix, imageListString, csvwriter, workRID, imageGroupID):
     """
@@ -275,30 +289,25 @@ def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey, workRID, imageGroup
         errors.append("invalidformat")
     # in case of an uncompressed raw, im.info.compression == "raw"
     if errors:
-        csvline = [s3imageKey, workRID, imageGroupID, size, im.width, im.height, im.mode, im.format, im.palette, compression, "-".join(errors)]
+        csvline = [s3imageKey, workRID, imageGroupID, size, im.width, im.height, im.mode, im.format, im.palette,
+                   compression, "-".join(errors)]
         report_error(csvwriter, csvline)
 
-def getVolumeInfos(workRID):
-    """
-    this uses the LDS-PDI capabilities to get the volume list of a work, including, for each volume:
-    - image list
-    - image group ID
 
-    The information should be fetched (in csv or json) from lds-pdi, query for W22084 for instance is:
-    http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:W22084&format=csv&profile=simple&pageSize=500
+def getVolumeInfos(workRid: str, botoClient : object):
     """
-    VolInfo = namedtuple('VolInfo', ['imageList', 'imageGroupID'])
-    vol_info = []
-    req = 'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:{}&format=csv&profile=simple&pageSize=500'.format(workRID)
-    with request.urlopen(req) as response:
-        info = response.read()
-        info = info.decode('utf8').strip()
-        for line in info.split('\n')[1:]:
-            _, l, g = line.replace('"', '').split(',')
-            vi = VolInfo(l, g)
-            vol_info.append(vi)
+    Seslects which data source to use for volume info
+    :type workRid: str
+    :param workRid: Work identifier
+    :param botoClient: handle to AWS
+    :return: VolList[imagegroup1..imagegroupn]
+    """
+    from GetVolumeInfos import getVolumeInfosBUDA, getVolumeInfoseXist
+    if BUDA_IMAGE_GROUP:
+        return (getVolumeInfosBUDA(botoClient)).fetch(workRid)
 
-    return vol_info
+    return (getVolumeInfoseXist(botoClient)).fetch(workRid)
+
 
 
 if __name__ == '__main__':
