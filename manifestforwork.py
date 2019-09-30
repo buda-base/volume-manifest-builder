@@ -21,7 +21,8 @@ csvlock: Lock = Lock()
 S3BUCKET = "archive.tbrc.org"
 
 # jimk Toggle legacy and new sources
-BUDA_IMAGE_GROUP = False
+BUDA_IMAGE_GROUP = True
+
 
 
 # os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"

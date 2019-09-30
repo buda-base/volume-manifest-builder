@@ -28,7 +28,7 @@ pip3 install pillow boto3 s3transfer
 # Installation
 ## Prerequisites
 - Python 3.6 or newer
-- Install libraries `lxml request boto3.` `pip3 install lxml request boto3` will install them. 
+- Install libraries `lxml requests boto3.` `pip3 install lxml requests boto3` will install them. 
 
 - Download [BUDA Github volume-manifest-tool egg](https://github.com/buda-base/volume-manifest-tool/dist/volume-manifest-tool-1.0-py3.6.egg)
 - `python3 -m easy_install volume-manifest-tool-1.0-py3.6.egg` This puts the scripts
@@ -94,7 +94,7 @@ You can launch from a template using a launch template. `aws ec2 run-instances -
 You can then use any tool to monitor the instance. 
 
 If you launch the template, and it has no available input, it terminates the instance. So you would see it in the AWS Console:
-![](.README_images/AwsConTermImage.png)
+![AWS Console](.README_images/AwsConTermImage.png)
 
 If you provide it an input file, it will run while it's processing it. You can validate processing by looking in `s3://manifest.bdrc.org/processing/inprocess`
 

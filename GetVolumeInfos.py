@@ -38,6 +38,30 @@ class GetVolumeInfoBase(metaclass=abc.ABCMeta):
         """
         pass
 
+    def get_image_names(self, work_rid: str, image_group: str) -> []:
+        """
+        get names of the image files (actually, all the files in an image group, regardless
+        :type image_group: str
+        :param work_rid:
+        :param image_group:
+        :return: str[]
+        """
+
+        image_list = []
+        full_image_group_path: str = getS3FolderPrefix.getS3FolderPrefix(work_rid, image_group)
+        page_iterator = self.boto_paginator.paginate(Bucket=f"archive.tbrc.org", Prefix=full_image_group_path)
+
+        # #10 filter out image files
+        # filtered_iterator = page_iterator.search("Contents[?contains('Key','json') == `False`]")
+        # filtered_iterator = page_iterator.search("Contents.Key[?contains(@,'json') == `False`][]")
+        # filtered_iterator = page_iterator.search("[?contains(Contents.Key,'json') == `false`][]")
+        # page_iterator:
+        for page in page_iterator:
+            image_list.extend([dat["Key"].replace(full_image_group_path, "") for dat in page["Contents"] if
+                               '.json' not in dat["Key"]])
+
+        return image_list
+
 
 class getVolumeInfosBUDA(GetVolumeInfoBase):
     """
