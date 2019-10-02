@@ -12,16 +12,24 @@ import boto3
 import botocore
 from PIL import Image
 
-import getS3FolderPrefix
-from S3WorkFileManager import S3WorkFileManager
-from s3customtransfer import S3CustomTransfer
+from .S3WorkFileManager import S3WorkFileManager
+from .getS3FolderPrefix import get_s3_folder_prefix
+from .s3customtransfer import S3CustomTransfer
+
+S3_DEST_BUCKET = "archive.tbrc.org"
+
+S3_MANIFEST_WORK_LIST_BUCKET = "manifest.bdrc.org"
+todo_prefix = "processing/todo/"
+processing_prefix = "processing/inprocess/"
+done_prefix = "processing/done/"
+
+# jimk Toggle legacy and new sources
+BUDA_IMAGE_GROUP = True
 
 csvlock: Lock = Lock()
 
-S3BUCKET = "archive.tbrc.org"
-
-# jimk Toggle legacy and new sources
-BUDA_IMAGE_GROUP = False
+s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUCKET, todo_prefix, processing_prefix,
+                                                       done_prefix)
 
 
 # os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
@@ -43,11 +51,11 @@ def main():
     # manifestForList('RIDs.txt') # uncomment to test locally
     print("starting...")
     manifestShell()
-    manifestForList(sys.argv[1])
+
 
 def manifestShell():
     """
-    Prepares args for
+    Prepares args for running
     :return:
     """
     args = GetArgs()
@@ -61,17 +69,19 @@ class GetArgs:
     """
     pass
 
+
 def parse_args(arg_namespace: object) -> None:
     """
     :rtype: object
     :param arg_namespace. class which holds arg values
     """
-    _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions", usage="%(prog)s sourcefile.")
-
+    _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
+                                      usage="%(prog)s sourcefile.")
     _parser.add_argument("sourceFile", help="File containing one RID per line.")
 
     # noinspection PyTypeChecker
     _parser.parse_args(namespace=arg_namespace)
+
 
 def manifestForList(filename):
     """
@@ -80,7 +90,7 @@ def manifestForList(filename):
     """
     session = boto3.session.Session(region_name='us-east-1')
     client = session.client('s3')
-    bucket = session.resource('s3').Bucket(S3BUCKET)
+    bucket = session.resource('s3').Bucket(S3_DEST_BUCKET)
     errorsfilename = "errors-" + os.path.basename(filename) + ".csv"
     with open(errorsfilename, 'w+', newline='') as csvf:
         csvwriter = csv.writer(csvf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
@@ -97,8 +107,12 @@ def manifestForWork(client, bucket, workRID, csvwriter):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """
-    volumeInfos = getVolumeInfos(workRID, client)
-    for vi in volumeInfos:
+    vol_infos: [] = getVolumeInfos(workRID, client)
+    if (len(vol_infos) == 0):
+        print(f"Could not find image groups for {workRID}")
+        return
+
+    for vi in vol_infos:
         manifestForVolume(client, bucket, workRID, vi, csvwriter)
 
 
@@ -107,7 +121,7 @@ def manifestForVolume(client, bucket, workRID, vi, csvwriter):
     this function generates the manifest for an image group of a work (example: I0886 in W22084)
     """
 
-    s3folderPrefix = getS3FolderPrefix.getS3FolderPrefix(workRID, vi.imageGroupID)
+    s3folderPrefix = get_s3_folder_prefix(workRID, vi.imageGroupID)
     if manifestExists(client, s3folderPrefix):
         print("manifest exists: " + workRID + "-" + vi.imageGroupID)  # return
     manifest = generateManifest(bucket, client, s3folderPrefix, vi.imageList, csvwriter, workRID, vi.imageGroupID)
@@ -130,7 +144,7 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
     inspire from:
     https://github.com/buda-base/drs-deposit/blob/2f2d9f7b58977502ae5e90c08e77e7deee4c470b/contrib/tojsondimensions.py#L68
 
-    in short: 
+    in short:
        - make a compressed json string (no space)
        - gzip it
        - upload on s3 with the right metadata:
@@ -145,8 +159,7 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
     key = s3folderPrefix + 'dimensions.json'
     print("writing " + key)
     bucket.put_object(Key=key, Body=manifest_gzip,
-                      Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'}, Bucket=S3BUCKET)
-
+                      Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'}, Bucket=S3_DEST_BUCKET)
 
 
 def manifestExists(client, s3folderPrefix):
@@ -155,38 +168,13 @@ def manifestExists(client, s3folderPrefix):
     """
     key = s3folderPrefix + 'dimensions.json'
     try:
-        client.head_object(Bucket=S3BUCKET, Key=key)
+        client.head_object(Bucket=S3_DEST_BUCKET, Key=key)
         return True
     except botocore.exceptions.ClientError as exc:
         if exc.response['Error']['Code'] == '404':
             return False
         else:
             raise
-
-
-def expandImageList(imageListString):
-    """
-    expands an image list string into an array. Image lists are documented on http://purl.bdrc.io/ontology/core/imageList
-    see also this example in Java (although probably a bit too sophisticated):
-    https://github.com/buda-base/buda-iiif-presentation/blob/d64a2c47c056bfa8658c06c1cddd2566ff4a0a2a/src/main/java/io/bdrc/iiif/presentation/models/ImageListIterator.java
-    Example:
-       - imageListString="I2PD44320001.tif:2|I2PD44320003.jpg"
-       - result ["I2PD44320001.tif","I2PD44320002.tif","I2PD44320003.jpg"]
-    """
-    imageList = []
-    spans = imageListString.split('|')
-    for s in spans:
-        if ':' in s:
-            name, count = s.split(':')
-            dot = name.find('.')
-            prefix, num, ext = name[:dot - 4], name[dot - 4:dot], name[dot:]
-            for i in range(int(count)):
-                incremented = str(int(num) + i).zfill(len(num))
-                imageList.append('{}{}{}'.format(prefix, incremented, ext))
-        else:
-            imageList.append(s)
-
-    return imageList
 
 
 def gets3blob(bucket, s3imageKey):
@@ -218,7 +206,7 @@ class DoneCallback(object):
 def fillData(bucket, client, transfer, s3imageKey, csvwriter, imgdata, workRID, imageGroupID):
     filename = io.BytesIO()
     try:
-        transfer.download_file(S3BUCKET, s3imageKey, filename,
+        transfer.download_file(S3_DEST_BUCKET, s3imageKey, filename,
                                callback=DoneCallback(filename, imgdata, csvwriter, s3imageKey, workRID, imageGroupID))
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == '404':
@@ -228,13 +216,23 @@ def fillData(bucket, client, transfer, s3imageKey, csvwriter, imgdata, workRID, 
             raise
 
 
-def generateManifest(bucket, client, s3folderPrefix, imageListString, csvwriter, workRID, imageGroupID):
+def generateManifest(bucket, client, s3folderPrefix, imageList, csvwriter, workRID, imageGroupID):
     """
     this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
+    :param bucket:
+    :param client:
+    :param s3folderPrefix:
+    :param imageList: list of image names
+    :param csvwriter:
+    :param workRID:
+    :param imageGroupID:
+    :return:
     """
     res = []
     transfer = S3CustomTransfer(client)
-    for imageFileName in expandImageList(imageListString):
+    #
+    # jkmod: moved expand_image_list into VolumeInfoBUDA class
+    for imageFileName in imageList:
         s3imageKey = s3folderPrefix + imageFileName
         imgdata = {"filename": imageFileName}
         res.append(imgdata)
@@ -294,21 +292,75 @@ def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey, workRID, imageGroup
         report_error(csvwriter, csvline)
 
 
-def getVolumeInfos(workRid: str, botoClient : object):
+def getVolumeInfos(workRid: str, botoClient: object) -> []:
     """
-    Seslects which data source to use for volume info
+    Tries data sources for image group info. If BUDA_IMAGE_GROUP global is set, prefers
+    BUDA source, tries eXist on BUDA fail.
     :type workRid: str
     :param workRid: Work identifier
     :param botoClient: handle to AWS
     :return: VolList[imagegroup1..imagegroupn]
     """
-    from GetVolumeInfos import getVolumeInfosBUDA, getVolumeInfoseXist
+    from .VolumeInfoBuda import VolumeInfoBUDA
+    from .VolumeInfoeXist import VolumeInfoeXist
+
+    vol_infos: [] = []
     if BUDA_IMAGE_GROUP:
-        return (getVolumeInfosBUDA(botoClient)).fetch(workRid)
+        vol_infos = (VolumeInfoBUDA(botoClient)).fetch(workRid)
 
-    return (getVolumeInfoseXist(botoClient)).fetch(workRid)
+    if (len(vol_infos) == 0):
+        vol_infos = (VolumeInfoeXist(botoClient)).fetch(workRid)
 
+    return vol_infos
+
+
+def manifestFromS3():
+    """
+    Retrieves processes S3 objects in a bucket/key pair, where key is a prefix
+    :return:
+    """
+    session = boto3.session.Session(region_name='us-east-1')
+    client = session.client('s3')
+    work_list = buildWorkListFromS3(session, client)
+
+    for s3Path in work_list:
+        s3_full_path = f'{processing_prefix}{s3Path}'
+        file_path = NamedTemporaryFile()
+        client.download_file(S3_MANIFEST_WORK_LIST_BUCKET, s3_full_path, file_path.name)
+        manifestForList(file_path.name)
+
+    # dont need to rename work_list. Only when moving from src to done
+    s3_work_manager.mark_done(work_list, work_list)
+
+
+def buildWorkListFromS3(session: object, client: object) -> (str, []):
+    """
+    Reads a well-known folder for files which contain works.
+    Downloads, and digests each file, moving it to a temporary processing folder.
+    :param session: S3 session
+    :param client: S3 client
+    :type session: boto3.session
+    :type client: boto3.client
+    :return: unnamed tuple  of source directory and file names which have to be processed.
+    """
+
+    page_iterator = client.get_paginator('list_objects_v2').paginate(Bucket=S3_MANIFEST_WORK_LIST_BUCKET,
+                                                                     Prefix=todo_prefix)
+
+    file_list = []
+    # Get the object list forom the first value
+    for page in page_iterator:
+        object_list = [x for x in page["Contents"]]
+        file_list.extend([x['Key'].replace(todo_prefix, '') for x in object_list if x['Key'] != (todo_prefix)])
+
+    # We've ingested the contents of the to do list, move the files into processing
+    new_names = [s3_work_manager.local_name_work_file(x) for x in file_list]
+
+    s3_work_manager.mark_underway(file_list, new_names)
+    print(f"found names {file_list}")
+
+    return new_names
 
 
 if __name__ == '__main__':
-    main()
+    main()  # manifestFromS3()

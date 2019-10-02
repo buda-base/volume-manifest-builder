@@ -1,5 +1,5 @@
 from PIL import Image, ImageStat
-from functools import reduce
+
 
 def detect_color_image(file, thumb_size=100, MSE_cutoff=50, MSE_bw_cutoff=30, adjust_color_bias=True):
     pil_img = Image.open(file)

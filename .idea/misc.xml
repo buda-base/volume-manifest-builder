@@ -30,4 +30,7 @@
     <pom-list />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.6 (py365)" project-jdk-type="Python SDK" />
+  <component name="TaskProjectConfiguration">
+    <server type="GitHub" url="https://github.com" />
+  </component>
 </project>
