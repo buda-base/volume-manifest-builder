@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="4d8e23cf-2699-4a91-93ad-4254d7b24355" name="checkPubImagesUbu" url="http://ec2-18-207-159-44.compute-1.amazonaws.com">
+        <fileTransfer host="ec2-18-207-159-44.compute-1.amazonaws.com" port="22" privateKey="$USER_HOME$/.ssh/checkPubImages.pem" rootFolder="/home/ubuntu" accessType="SFTP" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
