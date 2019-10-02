@@ -79,8 +79,6 @@ def parse_args(arg_namespace: object) -> None:
                                       usage="%(prog)s sourcefile.")
     _parser.add_argument("sourceFile", help="File containing one RID per line.")
 
-    # TODO: Add mutually exclusive group: -s --s3 | -l --local
-
     # noinspection PyTypeChecker
     _parser.parse_args(namespace=arg_namespace)
 
