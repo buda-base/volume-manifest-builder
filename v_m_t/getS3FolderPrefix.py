@@ -1,10 +1,11 @@
 import hashlib
 
 
-def getS3FolderPrefix(workRID, imageGroupID):
+def get_s3_folder_prefix(workRID, imageGroupID):
     """
     gives the s3 prefix (~folder) in which the volume will be present.
-    inpire from https://github.com/buda-base/buda-iiif-presentation/blob/master/src/main/java/io/bdrc/iiif/presentation/ImageInfoListService.java#L73
+    inpire from https://github.com/buda-base/buda-iiif-presentation/blob/master/src/main/java/
+    io/bdrc/iiif/presentation/ImageInfoListService.java#L73
     Example:
        - workRID=W22084, imageGroupID=I0886
        - result = "Works/60/W22084/images/W22084-0886/
