@@ -146,7 +146,7 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
     inspire from:
     https://github.com/buda-base/drs-deposit/blob/2f2d9f7b58977502ae5e90c08e77e7deee4c470b/contrib/tojsondimensions.py#L68
 
-    in short: 
+    in short:
        - make a compressed json string (no space)
        - gzip it
        - upload on s3 with the right metadata:
