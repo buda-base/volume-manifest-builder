@@ -52,7 +52,7 @@ class VolumeInfoeXist(VolumeInfoBase):
         """
         vi = []
         for ig in image_groups:
-            vol_infos = self.get_image_names(work_rid, ig)
+            vol_infos = self.get_image_names_from_S3(work_rid, ig)
             vi.append(VolInfo(vol_infos, ig))
 
         return vi

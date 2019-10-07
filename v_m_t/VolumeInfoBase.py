@@ -38,18 +38,18 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         """
         pass
 
-    def get_image_names(self, work_rid: str, image_group: str) -> []:
+    def get_image_names_from_S3(self, parent, str, work_rid: str, image_group: str) -> []:
         """
         get names of the image files (actually, all the files in an image group, regardless
         :type image_group: str
-        :param work_rid:
-        :param image_group:
-        :return: str[]
+        :param work_rid: work name ex: W1FPl2251
+        :param image_group: sub folder (e.g. I1CZ0085)
+        :return: str[]  should contain I1CZ0085
         """
 
         image_list = []
         full_image_group_path: str = get_s3_folder_prefix(work_rid, image_group)
-        page_iterator = self.boto_paginator.paginate(Bucket=f"archive.tbrc.org", Prefix=full_image_group_path)
+        page_iterator = self.boto_paginator.paginate(Bucket=parent, Prefix=full_image_group_path)
 
         # #10 filter out image files
         # filtered_iterator = page_iterator.search("Contents[?contains('Key','json') == `False`]")

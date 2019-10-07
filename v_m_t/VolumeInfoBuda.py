@@ -68,7 +68,7 @@ class VolumeInfoBUDA(VolumeInfoBase):
                 # This is the case when the image list processing has broken or is not
                 # # available. Fallback to slicing the image groups vertically
                 if len(image_list) == 0:
-                    image_list = self.get_image_names(work_rid, g)
+                    image_list = self.get_image_names_from_S3(work_rid, g)
 
                 vi = VolInfo(image_list, g)
 
