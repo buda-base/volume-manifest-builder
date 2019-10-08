@@ -14,16 +14,8 @@ No compilation of the service files is required
         
 This configures the system to launch the Image Manifest Service on boot.
 
-## Troubleshooting and monitoring.
-This code block shows 
-1. files being transferred to the well-known address which the image service monitors.
-1. Manual instance launch
-1. Checking instance state
-1. Verifying that the service has moved files from the "inbox" to the "processing" folder. 
-1. Verifying that the instance has shut down
-1. Verifying that the logs are moved to done.
-
 Each instance generates a log file, which are stored in `s3://manifest.bdrc.org/log/`
 ## Instance replication
-To allow parallel runs, this instance is not generally run. We prepared a launch template ()
+To allow parallel runs, this instance is not generally run. We prepared a launch template for installing it on an
+AWS AMI, but this proved too unwieldy to update. A soon-to-be-released version will allow running as a service.
 
