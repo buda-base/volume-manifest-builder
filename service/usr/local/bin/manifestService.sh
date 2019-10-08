@@ -7,10 +7,10 @@
 # Arguments: PID file name
 #
 # Location:
+ME=$(basename $0)
 
 PID_FILE=${1?"usage $ME pidFileName"}
 
-ME=$(basename $0)
 PID_FILE=${1?"usage $ME pidFileName"}
 
 MANIFEST_PROG=/usr/local/bin/manifestFromS3
