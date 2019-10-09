@@ -11,6 +11,7 @@ from threading import Lock
 import boto3
 import botocore
 from PIL import Image
+from boto.s3.bucket import Bucket
 
 from .S3WorkFileManager import S3WorkFileManager
 from .getS3FolderPrefix import get_s3_folder_prefix
@@ -103,11 +104,11 @@ def manifestForList(filename):
                 manifestForWork(client, bucket, workRID, csvwriter)
 
 
-def manifestForWork(client, bucket, workRID, csvwriter):
+def manifestForWork(client, bucket: Bucket, workRID, csvwriter):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """
-    vol_infos: [] = getVolumeInfos(workRID, client)
+    vol_infos: [] = getVolumeInfos(workRID, client, bucket)
     if (len(vol_infos) == 0):
         print(f"Could not find image groups for {workRID}")
         return
@@ -292,7 +293,7 @@ def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey, workRID, imageGroup
         report_error(csvwriter, csvline)
 
 
-def getVolumeInfos(workRid: str, botoClient: object) -> []:
+def getVolumeInfos(workRid: str, botoClient: object, bucket: Bucket) -> []:
     """
     Tries data sources for image group info. If BUDA_IMAGE_GROUP global is set, prefers
     BUDA source, tries eXist on BUDA fail.
@@ -306,10 +307,10 @@ def getVolumeInfos(workRid: str, botoClient: object) -> []:
 
     vol_infos: [] = []
     if BUDA_IMAGE_GROUP:
-        vol_infos = (VolumeInfoBUDA(botoClient)).fetch(workRid)
+        vol_infos = (VolumeInfoBUDA(botoClient, bucket)).fetch(workRid)
 
     if (len(vol_infos) == 0):
-        vol_infos = (VolumeInfoeXist(botoClient)).fetch(workRid)
+        vol_infos = (VolumeInfoeXist(botoClient, bucket)).fetch(workRid)
 
     return vol_infos
 
