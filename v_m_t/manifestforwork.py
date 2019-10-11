@@ -321,16 +321,27 @@ def manifestFromS3():
     """
     session = boto3.session.Session(region_name='us-east-1')
     client = session.client('s3')
-    work_list = buildWorkListFromS3(session, client)
+    import time
 
-    for s3Path in work_list:
-        s3_full_path = f'{processing_prefix}{s3Path}'
-        file_path = NamedTemporaryFile()
-        client.download_file(S3_MANIFEST_WORK_LIST_BUCKET, s3_full_path, file_path.name)
-        manifestForList(file_path.name)
+    while True:
+        try:
+            work_list = buildWorkListFromS3(session, client)
 
-    # dont need to rename work_list. Only when moving from src to done
-    s3_work_manager.mark_done(work_list, work_list)
+            for s3Path in work_list:
+                s3_full_path = f'{processing_prefix}{s3Path}'
+                file_path = NamedTemporaryFile()
+                client.download_file(S3_MANIFEST_WORK_LIST_BUCKET, s3_full_path, file_path.name)
+                manifestForList(file_path.name)
+
+            # dont need to rename work_list. Only when moving from src to done
+            if len(work_list) > 0:
+                s3_work_manager.mark_done(work_list, work_list)
+        except Exception as eek:
+            print("threw exception\n", eek)
+        time.sleep(6)
+
+
+
 
 
 def buildWorkListFromS3(session: object, client: object) -> (str, []):
@@ -363,4 +374,5 @@ def buildWorkListFromS3(session: object, client: object) -> (str, []):
 
 
 if __name__ == '__main__':
-    main()  # manifestFromS3()
+    # main()
+    manifestFromS3()
