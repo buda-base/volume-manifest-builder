@@ -1,6 +1,7 @@
 import abc
 import collections
 
+from boto.s3.bucket import Bucket
 from boto3 import client
 from botocore.paginate import Paginator
 
@@ -8,6 +9,14 @@ from .getS3FolderPrefix import get_s3_folder_prefix
 
 # imageList is a str[], imageGroupId: str
 VolInfo = collections.namedtuple('VolInfo', ['imageList', 'imageGroupID'])
+
+#
+# Super magic constant.
+# See https://github.com/archive-ops/scripts/processing/sync2archive.sh
+#
+VMT_BUDABOM: str = 'fileList.json'
+VMT_BUDABOM_KEY = 'filename'
+VMT_DIM: str = 'dimensions.json'
 
 
 class VolumeInfoBase(metaclass=abc.ABCMeta):
@@ -18,16 +27,19 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
 
     boto_client: client = None
 
+    s3_image_bucket: Bucket = None
+
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html
     boto_paginator: Paginator = None
 
-    def __init__(self, boto_client: client):
+    def __init__(self, boto_client: client, bucket: Bucket):
         """
         :param boto_client: context for operations
         :type boto_client: boto3.client
         """
         self.boto_client = boto_client
         self.boto_paginator = self.boto_client.get_paginator('list_objects_v2')
+        self.s3_image_bucket = bucket
 
     @abc.abstractmethod
     def fetch(self, urlRequest) -> []:
@@ -38,18 +50,42 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         """
         pass
 
-    def get_image_names(self, work_rid: str, image_group: str) -> []:
+    def read_bom_from_s3(self, bom_path: str) -> list:
+        """
+        Reads a json file and returns the values with the "filename" key as a list of strings
+        :param bom_path:  full s3 path to BOM
+        :return:
+        """
+        import boto3
+        import json
+
+        s3 = boto3.client('s3')
+
+        obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key=bom_path)
+        #
+        # Python 3 read() returns bytes which need decode
+        json_body: {} = json.loads(obj['Body'].read().decode('utf - 8'))
+
+        return [x[VMT_BUDABOM_KEY] for x in json_body]
+
+    def get_image_names_from_S3(self, work_rid: str, image_group: str) -> []:
         """
         get names of the image files (actually, all the files in an image group, regardless
-        :type image_group: str
-        :param work_rid:
-        :param image_group:
-        :return: str[]
+        :param work_rid: work name ex: W1FPl2251
+        :param image_group: sub folder (e.g. I1CZ0085)
+        :return: str[]  should contain ['I1CZ0085001.jpg','I1CZ0085002.jpg'...']
         """
 
         image_list = []
         full_image_group_path: str = get_s3_folder_prefix(work_rid, image_group)
-        page_iterator = self.boto_paginator.paginate(Bucket=f"archive.tbrc.org", Prefix=full_image_group_path)
+        bom: [] = self.read_bom_from_s3(full_image_group_path + VMT_BUDABOM)
+
+        if len(bom) > 0:
+            print(f"fetched BOM from BUDABOM: {len(bom)} entries")
+            return bom
+
+        # jimk: Get the
+        page_iterator = self.boto_paginator.paginate(Bucket=self.s3_image_bucket, Prefix=full_image_group_path)
 
         # #10 filter out image files
         # filtered_iterator = page_iterator.search("Contents[?contains('Key','json') == `False`]")
@@ -61,4 +97,5 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
                 image_list.extend([dat["Key"].replace(full_image_group_path, "") for dat in page["Contents"] if
                                    '.json' not in dat["Key"]])
 
+        print("fetched BOM from S3 list_objects: {len(image_list} entries.")
         return image_list

@@ -1,49 +1,67 @@
 #!/usr/bin/env python3
 import argparse
+import collections
 import csv
 import gzip
 import io
 import json
 import os
-from tempfile import NamedTemporaryFile
 from threading import Lock
 
-import boto3
-import botocore
 from PIL import Image
-from boto.s3.bucket import Bucket
+from DBApps.DbAppParser import mustExistDirectory
 
-from .S3WorkFileManager import S3WorkFileManager
-from .getS3FolderPrefix import get_s3_folder_prefix
-from .s3customtransfer import S3CustomTransfer
+# imageList is a str[], imageGroupId: str
+VolInfo = collections.namedtuple('VolInfo', ['imageList', 'imageGroupID'])
 
-S3_DEST_BUCKET = "archive.tbrc.org"
 
-S3_MANIFEST_WORK_LIST_BUCKET = "manifest.bdrc.org"
-todo_prefix = "processing/todo/"
-processing_prefix = "processing/inprocess/"
-done_prefix = "processing/done/"
 
-# jimk Toggle legacy and new sources
-BUDA_IMAGE_GROUP = True
+# region Parser
+class ArgNamespace:
+    """
+    instantiates command line argument container
+    """
+    pass
 
+
+def parse_args(arg_namespace: object) -> None:
+    """
+    :rtype: object
+    :param arg_namespace. class which holds arg values
+    """
+    _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
+                                      usage="%(prog)s sourcefile.")
+    _parser.add_argument('-s', '--sourcedir', dest='source_dir', action='store',
+                         help='parent of all work RIDs input directory', type=mustExistDirectory)
+    _parser.add_argument("sourceFile", dest="rid_file", help="File containing one RID per line.")
+
+    # noinspection PyTypeChecker
+    _parser.parse_args(namespace=arg_namespace)
+
+
+# endregion
+
+
+#region error csv
 csvlock: Lock = Lock()
 
-s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUCKET, todo_prefix, processing_prefix,
-                                                       done_prefix)
-
-
-# os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
-
+first_error: bool = True
 def report_error(csvwriter, csvline):
     """
-   write the error in a synchronous way
-   """
+    write the error in a synchronous way
+    """
     global csvlock
+    global first_error
+
     csvlock.acquire()
+    if first_error:
+        csvwriter.writerow(
+            ["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette",
+             "compression", "errors"])
+        first_error = False
     csvwriter.writerow(csvline)
     csvlock.release()
-
+#endregion
 
 def main():
     """
@@ -59,74 +77,48 @@ def manifestShell():
     Prepares args for running
     :return:
     """
-    args = GetArgs()
+    args = ArgNamespace()
     parse_args(args)
-    manifestForList(args.sourceFile)
+    manifestForList(args.source_dir, args.rid_file)
 
 
-class GetArgs:
+def manifestForList(parent_dir: str, filename:str):
     """
-    instantiates command line argument container
-    """
-    pass
-
-
-def parse_args(arg_namespace: object) -> None:
-    """
-    :rtype: object
-    :param arg_namespace. class which holds arg values
-    """
-    _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
-                                      usage="%(prog)s sourcefile.")
-    _parser.add_argument("sourceFile", help="File containing one RID per line.")
-
-    # noinspection PyTypeChecker
-    _parser.parse_args(namespace=arg_namespace)
-
-
-def manifestForList(filename):
-    """
-    reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
+    reads a file containing aand iterate the manifestForWork function on each.
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
+    :param:
+    :param: filename  list of work RIDs
     """
-    session = boto3.session.Session(region_name='us-east-1')
-    client = session.client('s3')
-    bucket = session.resource('s3').Bucket(S3_DEST_BUCKET)
+
     errorsfilename = "errors-" + os.path.basename(filename) + ".csv"
     with open(errorsfilename, 'w+', newline='') as csvf:
         csvwriter = csv.writer(csvf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        csvwriter.writerow(
-            ["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette",
-             "compression", "errors"])
+
         with open(filename, 'r') as f:
-            for workRID in f.readlines():
-                workRID = workRID.strip()
-                manifestForWork(client, bucket, workRID, csvwriter)
+            for work_r_i_d in f.readlines():
+                work_r_i_d = work_r_i_d.strip()
+                manifestForWork(parent_dir, work_r_i_d, csvwriter)
 
 
-def manifestForWork(client, bucket: Bucket, workRID, csvwriter):
+def manifestForWork(parent_dir: str, work_r_i_d, csvwriter):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """
-    vol_infos: [] = getVolumeInfos(workRID, client, bucket)
+    vol_infos: [] = getVolumeInfos(parent_dir, work_r_i_d)
     if (len(vol_infos) == 0):
-        print(f"Could not find image groups for {workRID}")
+        print(f"Could not find image groups for {work_r_i_d}")
         return
 
     for vi in vol_infos:
-        manifestForVolume(client, bucket, workRID, vi, csvwriter)
+        manifestForVolume(parent_dir, work_r_i_d, vi, csvwriter)
 
 
-def manifestForVolume(client, bucket, workRID, vi, csvwriter):
+def manifestForVolume(parent: str, work_Rid: str, vi: VolInfo, csvwriter: object):
     """
     this function generates the manifest for an image group of a work (example: I0886 in W22084)
     """
-
-    s3folderPrefix = get_s3_folder_prefix(workRID, vi.imageGroupID)
-    if manifestExists(client, s3folderPrefix):
-        print("manifest exists: " + workRID + "-" + vi.imageGroupID)  # return
-    manifest = generateManifest(bucket, client, s3folderPrefix, vi.imageList, csvwriter, workRID, vi.imageGroupID)
-    uploadManifest(client, s3folderPrefix, manifest)
+    manifest = generateManifest(parent, vi.imageList, csvwriter, work_Rid, vi.imageGroupID)
+    uploadManifest(parent, work_Rid, manifest)
 
 
 def gzip_str(string_):
@@ -293,7 +285,7 @@ def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey, workRID, imageGroup
         report_error(csvwriter, csvline)
 
 
-def getVolumeInfos(workRid: str, botoClient: object, bucket: Bucket) -> []:
+def getVolumeInfos(workRid: str, parent: str) -> object:
     """
     Tries data sources for image group info. If BUDA_IMAGE_GROUP global is set, prefers
     BUDA source, tries eXist on BUDA fail.
@@ -302,65 +294,15 @@ def getVolumeInfos(workRid: str, botoClient: object, bucket: Bucket) -> []:
     :param botoClient: handle to AWS
     :return: VolList[imagegroup1..imagegroupn]
     """
-    from .VolumeInfoBuda import VolumeInfoBUDA
-    from .VolumeInfoeXist import VolumeInfoeXist
 
-    vol_infos: [] = []
+    vol_infos: VolInfo[] = []
     if BUDA_IMAGE_GROUP:
-        vol_infos = (VolumeInfoBUDA(botoClient, bucket)).fetch(workRid)
+        vol_infos = (VolumeInfoBUDA(botoClient)).fetch(workRid)
 
     if (len(vol_infos) == 0):
-        vol_infos = (VolumeInfoeXist(botoClient, bucket)).fetch(workRid)
+        vol_infos = (VolumeInfoeXist(botoClient)).fetch(workRid)
 
     return vol_infos
-
-
-def manifestFromS3():
-    """
-    Retrieves processes S3 objects in a bucket/key pair, where key is a prefix
-    :return:
-    """
-    session = boto3.session.Session(region_name='us-east-1')
-    client = session.client('s3')
-    work_list = buildWorkListFromS3(session, client)
-
-    for s3Path in work_list:
-        s3_full_path = f'{processing_prefix}{s3Path}'
-        file_path = NamedTemporaryFile()
-        client.download_file(S3_MANIFEST_WORK_LIST_BUCKET, s3_full_path, file_path.name)
-        manifestForList(file_path.name)
-
-    # dont need to rename work_list. Only when moving from src to done
-    s3_work_manager.mark_done(work_list, work_list)
-
-
-def buildWorkListFromS3(session: object, client: object) -> (str, []):
-    """
-    Reads a well-known folder for files which contain works.
-    Downloads, and digests each file, moving it to a temporary processing folder.
-    :param session: S3 session
-    :param client: S3 client
-    :type session: boto3.session
-    :type client: boto3.client
-    :return: unnamed tuple  of source directory and file names which have to be processed.
-    """
-
-    page_iterator = client.get_paginator('list_objects_v2').paginate(Bucket=S3_MANIFEST_WORK_LIST_BUCKET,
-                                                                     Prefix=todo_prefix)
-
-    file_list = []
-    # Get the object list forom the first value
-    for page in page_iterator:
-        object_list = [x for x in page["Contents"]]
-        file_list.extend([x['Key'].replace(todo_prefix, '') for x in object_list if x['Key'] != (todo_prefix)])
-
-    # We've ingested the contents of the to do list, move the files into processing
-    new_names = [s3_work_manager.local_name_work_file(x) for x in file_list]
-
-    s3_work_manager.mark_underway(file_list, new_names)
-    print(f"found names {file_list}")
-
-    return new_names
 
 
 if __name__ == '__main__':
