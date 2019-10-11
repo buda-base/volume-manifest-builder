@@ -1,20 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="AnalysisUIOptions">
-    <option name="SCOPE_TYPE" value="10" />
-  </component>
   <component name="ChangeListManager">
-    <list default="true" id="0857b70c-49d8-4963-9749-dfcbbc5ac501" name="5cc9bc8bcc396129fc088443 Create &quot;inprogress&quot; and &quot;done&quot; buckets, and move list from one to other." comment="Put into a package, separate volinfo BUDA and eXist">
-      <change afterPath="$PROJECT_DIR$/vmtlocal/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/vmtlocal/manifestforwork.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v_m_t/VolumeInfoBase.py" beforeDir="false" afterPath="$PROJECT_DIR$/v_m_t/VolumeInfoBase.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v_m_t/VolumeInfoBuda.py" beforeDir="false" afterPath="$PROJECT_DIR$/v_m_t/VolumeInfoBuda.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v_m_t/VolumeInfoeXist.py" beforeDir="false" afterPath="$PROJECT_DIR$/v_m_t/VolumeInfoeXist.py" afterDir="false" />
+    <list default="true" id="f636ffe8-7110-490f-9169-1c263ac4d774" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/jimk.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/jimk.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/service/usr/local/bin/manifestService.sh" beforeDir="false" afterPath="$PROJECT_DIR$/service/usr/local/bin/manifestService.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v_m_t/S3WorkFileManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/v_m_t/S3WorkFileManager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v_m_t/manifestforwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/v_m_t/manifestforwork.py" afterDir="false" />
     </list>
-    <list id="7142fc78-40ad-4d5d-917b-6d6074794332" name="Default Changelist" comment="use old website as data source. Added packaging." />
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,199 +20,34 @@
     <SUITE FILE_PATH="coverage/volume_manifest_tool$mainfestFromS3.coverage" NAME="mainfestFromS3 Coverage Results" MODIFIED="1569700383822" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../tmp/volume-manifest-tool-home" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="tojsondimensions.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../drs-deposit/contrib/tojsondimensions.py">
+    <leaf>
+      <file leaf-file-name="S3WorkFileManager.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/v_m_t/S3WorkFileManager.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1326">
-              <caret line="86" column="10" selection-start-line="85" selection-start-column="45" selection-end-line="86" selection-end-column="10" />
+            <state relative-caret-position="374">
+              <caret line="22" selection-start-line="22" selection-end-line="22" />
               <folding>
-                <element signature="e#24#46#0" expanded="true" />
+                <element signature="e#0#12#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="manifestforwork.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/vmtlocal/manifestforwork.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="899">
-              <caret line="297" column="29" selection-start-line="297" selection-start-column="29" selection-end-line="297" selection-end-column="29" />
-              <folding>
-                <element signature="e#23#38#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="VolumeInfoBase.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/v_m_t/VolumeInfoBase.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="921">
-              <caret line="58" column="34" lean-forward="true" selection-start-line="58" selection-start-column="34" selection-end-line="58" selection-end-column="34" />
-              <folding>
-                <element signature="e#0#10#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="VolumeInfoeXist.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/v_m_t/VolumeInfoeXist.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="697">
-              <caret line="41" lean-forward="true" selection-start-line="41" selection-end-line="41" />
-              <folding>
-                <element signature="e#0#28#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="VolumeInfoBuda.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/v_m_t/VolumeInfoBuda.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="254">
-              <caret line="15" column="74" lean-forward="true" selection-start-line="15" selection-start-column="74" selection-end-line="15" selection-end-column="74" />
-              <folding>
-                <element signature="e#0#26#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DbAppParser.py" pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/pyEnvs/py365/lib/python3.6/site-packages/DBApps-0.42.3-py3.6.egg/DBApps/DbAppParser.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1105">
-              <caret line="68" column="29" selection-start-line="68" selection-start-column="29" selection-end-line="68" selection-end-column="29" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Image.py" pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/pyEnvs/py365/lib/python3.6/site-packages/PIL/Image.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45764">
-              <caret line="2697" selection-start-line="2697" selection-end-line="2697" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="setup.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/setup.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="187">
-              <caret line="11" selection-start-line="11" selection-end-line="11" />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Setup Script" />
-        <option value="Python Script" />
-      </list>
-    </option>
-  </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>csvloc</find>
-      <find>manifest.*S3</find>
-      <find>__main</find>
-      <find>replace</find>
-      <find>get.*file</find>
-      <find>inpr</find>
-      <find>keydoesnotexist</find>
-      <find>exp</find>
-      <find>fetch</find>
-      <find>uploadMa</find>
-      <find>export</find>
-      <find>__init__</find>
-      <find>purl</find>
-      <find>/usr/local/bin</find>
-      <find>found names</find>
-      <find>zip</find>
-      <find>dist</find>
-      <find>-instances</find>
-      <find>me_instance</find>
-      <find>hostname</find>
-      <find>session</find>
-      <find>blob</find>
-      <find>bucket</find>
-      <find>main</find>
-      <find>getVol</find>
-      <find>existDBIGUpdaterURL</find>
-      <find>expan</find>
-      <find>s3_work_manager</find>
-      <find>&gt;&gt;&gt;</find>
-      <find>mustE</find>
-    </findStrings>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="make-service" />
       </map>
     </option>
     <option name="RESET_MODE" value="HARD" />
   </component>
-  <component name="GithubProjectSettings">
-    <option name="CREATE_PULL_REQUEST_DEFAULT_BRANCH" value="master" />
-    <option name="CREATE_PULL_REQUEST_DEFAULT_REPO_USER" value="buda-base" />
-    <option name="CREATE_PULL_REQUEST_DEFAULT_REPO_NAME" value="volume-manifest-tool" />
-  </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/GetVoloumeInfos.py" />
-        <option value="$PROJECT_DIR$/getS3FoldersFromPrefix.py" />
-        <option value="$PROJECT_DIR$/getS3FolderPrefix.py" />
-        <option value="$PROJECT_DIR$/../tmp/volume-manifest-tool-home/RIDS.txt" />
-        <option value="$PROJECT_DIR$/service/usr/local/bin/manifestbucketpolicy" />
-        <option value="$PROJECT_DIR$/RIDseXist.txt" />
-        <option value="$PROJECT_DIR$/RIDs.txt" />
-        <option value="$PROJECT_DIR$/S3WorkFileManager.py" />
-        <option value="$PROJECT_DIR$/service/usr/local/bin/manifest.sh" />
-        <option value="&lt;4d8e23cf-2699-4a91-93ad-4254d7b24355&gt;/service/usr/local/bin/manifestService.sh" />
-        <option value="$PROJECT_DIR$/service/etc/systemd/system/manifest.service" />
-        <option value="$PROJECT_DIR$/service/usr/local/bin/manifestService.sh" />
-        <option value="$PROJECT_DIR$/service/usr/lib/systemd/user/manifest.service" />
-        <option value="$PROJECT_DIR$/service/README.md" />
-        <option value="$PROJECT_DIR$/build/lib/manifestforwork.py" />
-        <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/GetVolumeInfos.py" />
-        <option value="$PROJECT_DIR$/manifestforwork.py" />
-        <option value="$PROJECT_DIR$/__init__.py" />
-        <option value="$PROJECT_DIR$/volume-manifest-tool-package/__init__.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/VolumeInfosBuda.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/GetVolumeInfos.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/GetVolumeInfosBase.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/VolumeInfoeXist.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/FileManifest.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/LocalManifest.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/ManifestBase.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/S3Manifest.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/const.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/localwork.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/manifestforwork.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/VolumeInfoBase.py" />
-        <option value="$PROJECT_DIR$/volumemanifesttool/VolumeInfoBuda.py" />
-        <option value="$PROJECT_DIR$/v_m_t/VolumeInfoBuda.py" />
-        <option value="$PROJECT_DIR$/v_m_t/localwork.py" />
-        <option value="$PROJECT_DIR$/v_m_t/test_expandImageList.py" />
-        <option value="$PROJECT_DIR$/v_m_t/__init__.py" />
         <option value="$PROJECT_DIR$/v_m_t/S3WorkFileManager.py" />
-        <option value="$PROJECT_DIR$/setup.py" />
-        <option value="$PROJECT_DIR$/v_m_t/getS3FolderPrefix.py" />
-        <option value="$PROJECT_DIR$/v_m_t/s3customtransfer.py" />
-        <option value="$PROJECT_DIR$/v_m_t/manifestforwork.py" />
-        <option value="$PROJECT_DIR$/vmtlocal/manifestforwork.py" />
-        <option value="$PROJECT_DIR$/v_m_t/VolumeInfoBase.py" />
       </list>
     </option>
   </component>
@@ -231,11 +59,6 @@
   </component>
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
-  </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="23" />
-    <option name="width" value="1680" />
-    <option name="height" value="1027" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -257,16 +80,8 @@
             <path>
               <item name="volume-manifest-tool" type="b2602c69:ProjectViewProjectNode" />
               <item name="volume-manifest-tool" type="462c0819:PsiDirectoryNode" />
-              <item name="vmtlocal" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="volume-manifest-tool" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-            </path>
-            <path>
-              <item name="volume-manifest-tool" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Python 3.6 (py365) &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="v_m_t" type="462c0819:PsiDirectoryNode" />
+              <item name="S3WorkFileManager.py" type="8704e2dd:PyFileNode" />
             </path>
           </expand>
           <select />
@@ -275,35 +90,6 @@
       <pane id="Scope" />
       <pane id="PackagesPane" />
     </panes>
-  </component>
-  <component name="PropertiesComponent">
-    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/.." />
-    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
-    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="project.structure.last.edited" value="Project" />
-    <property name="project.structure.proportion" value="0.15" />
-    <property name="project.structure.side.proportion" value="0.0" />
-    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
-    <property name="tasks.open.task.update.state.enabled" value="false" />
-  </component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/volume-manifest-tool-package" />
-      <recent name="$PROJECT_DIR$/service/usr/lib/systemd/user" />
-    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -316,99 +102,6 @@
         </RuleState>
       </list>
     </option>
-  </component>
-  <component name="RunManager" selected="Python.manifestforwork">
-    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
-      <module name="volume-manifest-tool" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-        <env name="AMAZON_SHARED_CREDENTIALS_FILE" value="$USER_HOME$/.aws/credentials" />
-      </envs>
-      <option name="SDK_HOME" value="/usr/local/bin/python3.6" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../manifest" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manifestforwork.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-    </configuration>
-    <configuration name="mainfestFromS3" type="PythonConfigurationType" factoryName="Python">
-      <module name="volume-manifest-tool" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/pyEnvs/py365/bin/python" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../tmp/volume-manifest-tool-home" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/volume-manifest-tool-package/manifestforwork.py" />
-      <option name="PARAMETERS" value="RIDseXist.txt" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="true" />
-      <option name="MODULE_MODE" value="false" />
-    </configuration>
-    <configuration name="manifestforwork BUDA" type="PythonConfigurationType" factoryName="Python">
-      <module name="volume-manifest-tool" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/pyEnvs/py365/bin/python" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../tmp/volume-manifest-tool-home" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/volume-manifest-tool-package/manifestforwork.py" />
-      <option name="PARAMETERS" value="RIDseXist.txt" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="true" />
-      <option name="MODULE_MODE" value="false" />
-    </configuration>
-    <configuration name="manifestforwork" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="volume-manifest-tool" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/pyEnvs/py365/bin/python" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../tmp/volume-manifest-tool-home" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manifestforwork.py" />
-      <option name="PARAMETERS" value="RIDS.txt" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-    </configuration>
-    <list>
-      <item itemvalue="Python.manifestforwork BUDA" />
-      <item itemvalue="Python.mainfestFromS3" />
-      <item itemvalue="Python.manifestforwork" />
-    </list>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Python.manifestforwork" />
-        <item itemvalue="Python.manifestforwork" />
-        <item itemvalue="Python.manifestforwork" />
-        <item itemvalue="Python.manifestforwork" />
-        <item itemvalue="Python.manifestforwork" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -476,14 +169,15 @@
       <option name="project" value="LOCAL" />
       <updated>1556737094180</updated>
     </task>
-    <task active="true" id="LOCAL-00004" summary="5cc9bc8bcc396129fc088443 WIP Get it running as a service">
+    <task id="LOCAL-00004" summary="5cc9bc8bcc396129fc088443 WIP Get it running as a service">
       <branch name="jimkAO" repository="$PROJECT_DIR$" />
+      <branch name="make-service" repository="$PROJECT_DIR$" original="true" />
       <changelist id="0857b70c-49d8-4963-9749-dfcbbc5ac501" name="5cc9bc8bcc396129fc088443 Create &quot;inprogress&quot; and &quot;done&quot; buckets, and move list from one to other." comment="5cc9bc8bcc396129fc088443 WIP Get it running as a service" />
       <created>1556747659916</created>
       <option name="number" value="00004" />
       <option name="presentableId" value="LOCAL-00004" />
       <option name="project" value="LOCAL" />
-      <updated>1556806251669</updated>
+      <updated>1570826948054</updated>
       <workItem from="1556806251747" duration="10635000" />
       <workItem from="1556907782804" duration="152000" />
       <workItem from="1556907944324" duration="9519000" />
@@ -539,7 +233,19 @@
       <option name="project" value="LOCAL" />
       <updated>1570044977075</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task active="true" id="volume-manifest-tool-14" summary="Make volume manifest tool a standing service">
+      <branch name="make-service" repository="$PROJECT_DIR$" />
+      <changelist id="35a34ab5-5e2c-4687-99e2-dd036dd940a5" name="volume-manifest-tool-14 Make volume manifest tool a standing service" comment="" />
+      <created>1570821566000</created>
+      <option name="issue" value="true" />
+      <url>https://github.com/buda-base/volume-manifest-tool/issues/14</url>
+      <option name="number" value="14" />
+      <option name="presentableId" value="volume-manifest-tool-14" />
+      <option name="project" value="volume-manifest-tool" />
+      <option name="type" value="BUG" />
+      <updated>1570835297000</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <option name="createBranch" value="false" />
     <option name="useBranch" value="true" />
     <servers>
@@ -556,16 +262,14 @@
         <option name="includeAllCards" value="true" />
       </Trello>
       <GitHub shared="true" url="https://github.com">
+        <token>df9adfcfdfcbdf99dfcbdf9ddfcbdf9cdfcbdf9adf98dfc8df98dfcedf9bdfcfdfcbdfcedf9bdf9ddf9ddf9fdfc9dfccdf99df9adf9ddf9edf98dfcedf98df99dfcedfccdf9edfc9df9bdf9bdf9ddf9a</token>
         <option name="repoAuthor" value="buda-base" />
         <option name="repoName" value="volume-manifest-tool" />
       </GitHub>
     </servers>
   </component>
-  <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="120431000" />
-  </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1680" height="1027" extended-state="6" />
+    <frame x="0" y="23" width="2560" height="1417" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info anchor="right" id="Key Promoter X" order="6" />
@@ -576,38 +280,38 @@
       <window_info anchor="bottom" id="Python Console" order="13" weight="0.32846004" />
       <window_info anchor="bottom" id="Run" order="3" weight="0.1971831" />
       <window_info anchor="bottom" x="3056" y="1497" width="570" height="415" id="Terminal" order="15" sideWeight="0.50091827" side_tool="true" weight="0.41616508" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24114774" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24305004" />
       <window_info anchor="bottom" id="Docker" order="8" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="5" />
-      <window_info anchor="bottom" id="Find" order="2" sideWeight="0.49403122" weight="0.41616508" />
       <window_info anchor="right" id="SciView" order="4" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="4" sideWeight="0.4986226" weight="0.29750645" />
-      <window_info anchor="right" id="Palette&#9;" order="9" />
-      <window_info anchor="bottom" id="Messages" order="9" sideWeight="0.49908173" weight="0.32932073" />
+      <window_info anchor="right" id="Maven" order="8" />
+      <window_info id="Learn" order="4" />
+      <window_info anchor="right" id="Remote Host" order="3" sideWeight="0.49210206" weight="0.2077679" />
       <window_info anchor="right" id="Maven-2 Build" order="7" />
+      <window_info id="Designer" order="3" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="bottom" id="Inspection Results" order="14" sideWeight="0.49908173" weight="0.32932073" />
-      <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="right" id="Remote Host" order="3" sideWeight="0.49210206" weight="0.2077679" />
-      <window_info id="Learn" order="4" />
-      <window_info anchor="right" id="Maven" order="8" />
-      <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection Results" order="14" sideWeight="0.49908173" weight="0.32932073" />
       <window_info active="true" anchor="bottom" id="File Transfer" order="0" visible="true" weight="0.3294347" />
-      <window_info id="Designer" order="3" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="2" sideWeight="0.49403122" weight="0.41616508" />
+      <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
+      <window_info anchor="bottom" id="Messages" order="9" sideWeight="0.49908173" weight="0.32932073" />
+      <window_info anchor="bottom" id="Message" order="1" />
+      <window_info anchor="right" id="Palette&#9;" order="9" />
     </layout>
     <layout-to-restore>
       <window_info anchor="right" id="Maven" order="8" />
       <window_info id="Designer" order="3" />
       <window_info id="Learn" order="4" />
       <window_info anchor="bottom" id="Python Console" order="13" weight="0.32846004" />
-      <window_info anchor="right" id="Remote Host" order="3" sideWeight="0.49210206" weight="0.2077679" />
-      <window_info anchor="right" id="Maven-2 Build" order="7" />
       <window_info anchor="bottom" id="Run" order="3" weight="0.1971831" />
+      <window_info anchor="right" id="Maven-2 Build" order="7" />
+      <window_info anchor="bottom" id="Find" order="2" weight="0.4171181" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -622,6 +326,7 @@
       <window_info anchor="right" id="Key Promoter X" order="6" />
       <window_info anchor="bottom" id="Database Changes" order="11" />
       <window_info anchor="bottom" id="Version Control" order="10" />
+      <window_info anchor="right" id="Remote Host" order="3" sideWeight="0.49210206" weight="0.2077679" />
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.17998163" />
       <window_info anchor="right" id="SciView" order="4" />
       <window_info active="true" anchor="bottom" id="Messages" order="9" visible="true" weight="0.32936078" />
@@ -630,22 +335,8 @@
       <window_info anchor="right" id="Palette&#9;" order="9" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
-      <window_info anchor="bottom" id="Find" order="2" weight="0.4171181" />
       <window_info anchor="bottom" id="Debug" order="4" sideWeight="0.49938875" weight="0.2979415" />
     </layout-to-restore>
-  </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
-  </component>
-  <component name="Vcs.Log.History.Properties">
-    <option name="COLUMN_ORDER">
-      <list>
-        <option value="0" />
-        <option value="2" />
-        <option value="3" />
-        <option value="1" />
-      </list>
-    </option>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -692,67 +383,17 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$USER_HOME$/pyEnvs/py365/lib/python3.6/site-packages/botocore/session.py</url>
-          <line>444</line>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/manifestforwork.py</url>
-          <line>249</line>
-          <option name="timeStamp" value="10" />
-        </line-breakpoint>
-      </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
-  </component>
-  <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/volume_manifest_tool$manifestforwork_BUDA.coverage" NAME="manifestforwork BUDA Coverage Results" MODIFIED="1556916045230" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../tmp/volume-manifest-tool-home" />
-    <SUITE FILE_PATH="coverage/volume_manifest_tool$manifestforwork.coverage" NAME="manifestforwork Coverage Results" MODIFIED="1556642159184" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../tmp/volume-manifest-tool-home" />
-  </component>
-  <component name="debuggerHistoryManager">
-    <expressions id="setValue">
-      <expression>
-        <expression-string>'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:W1FPL2251&amp;format=csv&amp;profile=simple&amp;pageSize=500'</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:W1FPl2251&amp;format=csv&amp;profile=simple&amp;pageSize=500'</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-    </expressions>
-    <expressions id="evaluateExpression">
-      <expression>
-        <expression-string>etree.fromstring(info).text</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>etree.fromstring(info)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>et.text</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>et</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>et[0]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-    </expressions>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/v_m_t/manifestforwork.py">
@@ -887,11 +528,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/__init__.py" />
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-208" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../archive-ops/scripts/processing/sync2archive.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
@@ -969,13 +605,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/v_m_t/S3WorkFileManager.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="245">
-          <caret line="24" column="8" selection-start-line="24" selection-start-column="8" selection-end-line="24" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/v_m_t/detectgraynb.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
@@ -1045,20 +674,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/vmtlocal/manifestforwork.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="899">
-          <caret line="297" column="29" selection-start-line="297" selection-start-column="29" selection-end-line="297" selection-end-column="29" />
-          <folding>
-            <element signature="e#23#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/vmtlocal/manifestforwork.py" />
     <entry file="file://$PROJECT_DIR$/v_m_t/VolumeInfoBase.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="921">
-          <caret line="58" column="34" lean-forward="true" selection-start-line="58" selection-start-column="34" selection-end-line="58" selection-end-column="34" />
+        <state relative-caret-position="884">
+          <caret line="58" column="34" selection-start-line="58" selection-start-column="34" selection-end-line="58" selection-end-column="34" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
@@ -1067,8 +687,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/v_m_t/VolumeInfoeXist.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="697">
-          <caret line="41" lean-forward="true" selection-start-line="41" selection-end-line="41" />
+        <state relative-caret-position="646">
+          <caret line="41" selection-start-line="41" selection-end-line="41" />
           <folding>
             <element signature="e#0#28#0" expanded="true" />
           </folding>
@@ -1078,83 +698,29 @@
     <entry file="file://$PROJECT_DIR$/v_m_t/VolumeInfoBuda.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="254">
-          <caret line="15" column="74" lean-forward="true" selection-start-line="15" selection-start-column="74" selection-end-line="15" selection-end-column="74" />
+          <caret line="15" column="74" selection-start-line="15" selection-start-column="74" selection-end-line="15" selection-end-column="74" />
           <folding>
             <element signature="e#0#26#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-  </component>
-  <component name="masterDetails">
-    <states>
-      <state key="ArtifactsStructureConfigurable.UI">
-        <settings>
-          <artifact-editor />
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="FacetStructureConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="GlobalLibrariesConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="JdkListConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="ModuleStructureConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="ProjectLibrariesConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-    </states>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="329">
+          <caret line="59" column="17" lean-forward="true" selection-start-line="59" selection-start-column="17" selection-end-line="59" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/v_m_t/S3WorkFileManager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="374">
+          <caret line="22" selection-start-line="22" selection-end-line="22" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
   </component>
 </project>

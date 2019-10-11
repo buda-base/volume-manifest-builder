@@ -16,14 +16,23 @@ class S3WorkFileManager:
         :return:
         """
 
-        # Build the destination name
-        instance_id = "unknown_instance"
+        instance_id = "unknown instance"
         try:
             import requests
-            response = requests.get('http://169.254.169.254/latest/meta-data/instance-id', timeout=10)
+            response = requests.get('http://169.254.169.254/latest/meta-data/instance-id', timeout=2)
             instance_id = response.text
         except:
-            pass
+            from os import getpid
+            import platform
+            import datetime
+
+            # Build the destination name
+            now: datetime = datetime.datetime.now()
+
+            hostname: str = platform.node()
+            pid: int = getpid()
+            instance_id = f"{now.year}-{now.month}-{now.day}_{now.hour}_{now.minute}_{now.second}-{hostname}.{pid}"
+
         return instance_id
 
     def s3_move(self, src_object: str, dest_object: str, src_folder, dest_folder):

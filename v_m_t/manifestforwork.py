@@ -345,7 +345,7 @@ def buildWorkListFromS3(session: object, client: object) -> (str, []):
     """
 
     page_iterator = client.get_paginator('list_objects_v2').paginate(Bucket=S3_MANIFEST_WORK_LIST_BUCKET,
-                                                                     Prefix=todo_prefix)
+        Prefix=todo_prefix)
 
     file_list = []
     # Get the object list forom the first value
