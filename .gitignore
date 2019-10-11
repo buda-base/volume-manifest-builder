@@ -109,3 +109,4 @@ venv.bak/
 
 # JetBrains
 export
+.idea/workspace.xml
