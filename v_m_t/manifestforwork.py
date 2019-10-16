@@ -159,7 +159,7 @@ def manifestForList(filename):
                 manifestForWork(client, dest_bucket, workRID, csvwriter)
 
 
-def manifestForWork(client: boto3.client, bucket : Bucket, workRID, csvwriter):
+def manifestForWork(client: boto3.client, bucket: Bucket, workRID, csvwriter):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """

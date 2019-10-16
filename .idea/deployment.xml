@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="Druk X" createEmptyFolders="true">
+  <component name="PublishConfigData" serverName="Druk X service" createEmptyFolders="true">
     <serverData>
-      <paths name="Druk X">
+      <paths name="Druk X service">
         <serverdata>
           <mappings>
-            <mapping deploy="/Users/jimk/dev" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/pub" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
