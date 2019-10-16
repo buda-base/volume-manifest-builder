@@ -109,5 +109,5 @@ venv.bak/
 
 # JetBrains
 export
-.idea/workspace.xml
+workspace.xml
 admin*ec2*amazonaws*
