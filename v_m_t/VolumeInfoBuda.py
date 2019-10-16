@@ -3,7 +3,7 @@ from urllib import request
 from v_m_t.VolumeInfoBase import VolumeInfoBase, VolInfo
 
 
-def expand_image_list(image_list_str: str) -> []:
+def lpexpand_image_list(image_list_str: str) -> []:
     """
     expands an image list string into an array. Image lists are documented on
      http://purl.bdrc.io/ontology/core/imageList
@@ -57,8 +57,8 @@ class VolumeInfoBUDA(VolumeInfoBase):
         req = f'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:{work_rid}' \
               '&format=csv&profile=simple&pageSize=500'
         with request.urlopen(req) as response:
-            info = response.read()
-            info = info.decode('utf8').strip()
+            _info = response.read()
+            info = _info.decode('utf8').strip()
             for line in info.split('\n')[1:]:
                 _, l, g = line.replace('"', '').split(',')
                 #

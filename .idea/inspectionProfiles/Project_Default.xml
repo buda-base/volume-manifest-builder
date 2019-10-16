@@ -5,6 +5,7 @@
       <option name="ignoredErrors">
         <list>
           <option value="N803" />
+          <option value="N802" />
         </list>
       </option>
       <option name="ignoredBaseClasses">
@@ -24,6 +25,8 @@
           <option value="v_m_t.localwork.GetArgs.parent_path" />
           <option value="v_m_t.localwork.GetArgs.*" />
           <option value="v_m_t.manifestforwork.GetArgs.*" />
+          <option value="object.*" />
+          <option value="object.sourceFile" />
         </list>
       </option>
     </inspection_tool>

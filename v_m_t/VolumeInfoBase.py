@@ -1,7 +1,9 @@
 import abc
 import collections
 
+from boto.s3.bucket import Bucket
 from boto3 import client
+
 from botocore.paginate import Paginator
 
 from .getS3FolderPrefix import get_s3_folder_prefix
@@ -21,13 +23,18 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html
     boto_paginator: Paginator = None
 
-    def __init__(self, boto_client: client):
+    bucket: Bucket = None
+
+    def __init__(self, boto_client: client, bucket: Bucket):
         """
         :param boto_client: context for operations
         :type boto_client: boto3.client
+        : param bucket: target container
+        :type bucket: boto.s3.bucket.Bucket
         """
         self.boto_client = boto_client
         self.boto_paginator = self.boto_client.get_paginator('list_objects_v2')
+        self.bucket = bucket
 
     @abc.abstractmethod
     def fetch(self, urlRequest) -> []:
@@ -38,7 +45,7 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         """
         pass
 
-    def get_image_names_from_S3(self, parent, str, work_rid: str, image_group: str) -> []:
+    def get_image_names_from_S3(self,  work_rid: str, image_group: str) -> []:
         """
         get names of the image files (actually, all the files in an image group, regardless
         :type image_group: str
@@ -49,7 +56,7 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
 
         image_list = []
         full_image_group_path: str = get_s3_folder_prefix(work_rid, image_group)
-        page_iterator = self.boto_paginator.paginate(Bucket=parent, Prefix=full_image_group_path)
+        page_iterator = self.boto_paginator.paginate(Bucket=self.bucket.name, Prefix=full_image_group_path)
 
         # #10 filter out image files
         # filtered_iterator = page_iterator.search("Contents[?contains('Key','json') == `False`]")
