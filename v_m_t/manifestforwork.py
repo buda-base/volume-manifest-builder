@@ -4,23 +4,25 @@ import csv
 import gzip
 import io
 import json
+import logging
 import os
+from io import TextIOWrapper
 from tempfile import NamedTemporaryFile
 from threading import Lock
 
 import boto3
 import botocore
-import logging
 from PIL import Image
 from boto.s3.bucket import Bucket
 
 from .S3WorkFileManager import S3WorkFileManager
 from .getS3FolderPrefix import get_s3_folder_prefix
-from .s3customtransfer import S3CustomTransfer
 from .init_app_logger import init_app_logger
+from .s3customtransfer import S3CustomTransfer
 
 S3_DEST_BUCKET: str = "archive.tbrc.org"
 
+# for manifestFromS3
 S3_MANIFEST_WORK_LIST_BUCKET: str = "manifest.bdrc.org"
 todo_prefix: str = "processing/todo/"
 processing_prefix: str = "processing/inprocess/"
@@ -38,6 +40,7 @@ shell_logger: logging = None
 
 
 # os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
+
 
 def report_error(csvwriter, csvline):
     """
@@ -79,9 +82,14 @@ def manifestFromS3():
 
             for s3Path in work_list:
                 s3_full_path = f'{processing_prefix}{s3Path}'
+
+                # jimk: need to pass a file-like object. NamedTemporaryFile returns an odd
+                # beast which you cant run readlines() on
                 file_path = NamedTemporaryFile()
                 client.download_file(S3_MANIFEST_WORK_LIST_BUCKET, s3_full_path, file_path.name)
-                manifestForList(file_path.name)
+
+                with open(file_path.name, 'r') as srcFile:
+                    manifestForList(srcFile)
 
             # don't need to rename work_list. Only when moving from src to done
             if len(work_list) > 0:
@@ -114,46 +122,66 @@ def parse_args(arg_namespace: object) -> None:
     :rtype: object
     :param arg_namespace. class which holds arg values
     """
-    from v_m_t.init_app_logger import existing_log_level
 
     _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
                                       usage="%(prog)s sourcefile.")
-    _parser.add_argument("-l", "--loglevel", dest='log_level', action='store', type=existing_log_level, default='info')
+    _parser.add_argument("-l", "--loglevel", dest='log_level', action='store',
+                         choices=['info', 'warning', 'error', 'debug', 'critical'], default='info')
     #
     # sourceFile only used in manifestForList
-    _parser.add_argument('-s', '--sourceFile', dest='sourceFile', help="File containing one RID per line.",
-                         required=False)
+    _parser.add_argument('sourceFile', help="File containing one RID per line.", nargs='?', type=argparse.FileType('r'))
 
     # noinspection PyTypeChecker
     _parser.parse_args(namespace=arg_namespace)
 
 
+def exception_handler(exception_type, exception, traceback):
+    """
+    All your trace are belong to us!
+    your format
+    """
+
+    error_string: str = f"{exception_type.__name__}: {exception}"
+    if shell_logger is None:
+        print(error_string)
+    else:
+        shell_logger.error(error_string)
+
+
 def prolog() -> object:
+    # Skip noisy exceptions
+    import sys
+    sys.tracebacklimit = 0
+    sys.excepthook = exception_handler
+
     args = GetArgs()
     parse_args(args)
     init_app_logger(args.log_level)
     global shell_logger
     shell_logger = logging.getLogger(__name__)
+
     return args
 
-
 # region
-
-def manifestForList(filename):
+def manifestForList(sourceFile: TextIOWrapper):
     """
     reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
     """
+
+    if sourceFile is None:
+        raise ValueError("Usage: manifestforwork sourceFile where sourceFile contains a list of work RIDs")
+
     session = boto3.session.Session(region_name='us-east-1')
     client = session.client('s3')
     dest_bucket = session.resource('s3').Bucket(S3_DEST_BUCKET)
-    errors_file_name = "errors-" + os.path.basename(filename) + ".csv"
+    errors_file_name = "errors-" + os.path.basename(sourceFile.name) + ".csv"
     with open(errors_file_name, 'w+', newline='') as csvf:
         csvwriter = csv.writer(csvf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
         csvwriter.writerow(
             ["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette",
              "compression", "errors"])
-        with open(filename, 'r') as f:
+        with sourceFile as f:
             for workRID in f.readlines():
                 workRID = workRID.strip()
                 manifestForWork(client, dest_bucket, workRID, csvwriter)
@@ -407,5 +435,4 @@ def buildWorkListFromS3(session: object, client: object) -> (str, []):
 
 
 if __name__ == '__main__':
-    # main()
-    manifestFromS3()
+    main()  # manifestFromS3()

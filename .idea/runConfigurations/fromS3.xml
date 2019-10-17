@@ -12,8 +12,8 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="v_m_t.manifestforwork" />
-    <option name="PARAMETERS" value="-l info" />
+    <option name="SCRIPT_NAME" value="v_m_t.manifestforwork:manifestFromS3" />
+    <option name="PARAMETERS" value="-l debug" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="true" />
     <option name="MODULE_MODE" value="true" />

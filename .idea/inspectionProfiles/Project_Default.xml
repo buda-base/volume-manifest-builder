@@ -27,6 +27,7 @@
           <option value="v_m_t.manifestforwork.GetArgs.*" />
           <option value="object.*" />
           <option value="object.sourceFile" />
+          <option value="v_m_t.manifestforwork.arg_namespace" />
         </list>
       </option>
     </inspection_tool>

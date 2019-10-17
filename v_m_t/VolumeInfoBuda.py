@@ -3,7 +3,7 @@ from urllib import request
 from v_m_t.VolumeInfoBase import VolumeInfoBase, VolInfo
 
 
-def lpexpand_image_list(image_list_str: str) -> []:
+def expand_image_list(image_list_str: str) -> []:
     """
     expands an image list string into an array. Image lists are documented on
      http://purl.bdrc.io/ontology/core/imageList

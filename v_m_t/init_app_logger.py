@@ -1,20 +1,6 @@
 import logging
+
 from pathlib import Path
-
-
-def existing_log_level(loglevel: str ):
-    """
-    Argparse type specifying a
-    a logging file level
-    :param path:
-    :return: the literal value of the input argument
-    """
-    from argparse import ArgumentTypeError
-    numeric_level = getattr(logging, loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ArgumentTypeError('provided value %s must be one of info, warning, error, debug, critical',loglevel)
-    return loglevel
-
 
 def init_app_logger(loglevel: str):
     """
@@ -54,7 +40,7 @@ def init_app_logger(loglevel: str):
     # # This should be the parent of all loggers
     # logging.getLogger('').addHandler(main_handler)
 
-    logging.getLogger("requests").setLevel(logging.WARNING)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
-
-
+    for quiet_logger in ['boto', 'botocore', 'boto3', 'requests', 'urllib3', 'request', 's3transfer']:
+        ql = logging.getLogger(quiet_logger)
+        ql.setLevel(logging.CRITICAL)
+        ql.propagate = True
