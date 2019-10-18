@@ -1,5 +1,6 @@
 import abc
 import collections
+import logging
 
 from boto.s3.bucket import Bucket
 from boto3 import client
@@ -17,6 +18,8 @@ VolInfo = collections.namedtuple('VolInfo', ['imageList', 'imageGroupID'])
 VMT_BUDABOM: str = 'fileList.json'
 VMT_BUDABOM_KEY = 'filename'
 VMT_DIM: str = 'dimensions.json'
+
+logger: logging = None
 
 
 class VolumeInfoBase(metaclass=abc.ABCMeta):
@@ -36,10 +39,13 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         """
         :param boto_client: context for operations
         :type boto_client: boto3.client
+        : param bucket: target container
+        :type bucket: boto.s3.bucket.Bucket
         """
         self.boto_client = boto_client
         self.boto_paginator = self.boto_client.get_paginator('list_objects_v2')
         self.s3_image_bucket = bucket
+        self.logger = logging.getLogger(__name__)
 
     @abc.abstractmethod
     def fetch(self, urlRequest) -> []:
@@ -66,6 +72,8 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         # Python 3 read() returns bytes which need decode
         json_body: {} = json.loads(obj['Body'].read().decode('utf - 8'))
 
+        self.logger.debug("read bom from s3 object size %d json body size %d", len(obj), len(json_body))
+
         return [x[VMT_BUDABOM_KEY] for x in json_body]
 
     def get_image_names_from_S3(self, work_rid: str, image_group: str) -> []:
@@ -81,11 +89,11 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         bom: [] = self.read_bom_from_s3(full_image_group_path + VMT_BUDABOM)
 
         if len(bom) > 0:
-            print(f"fetched BOM from BUDABOM: {len(bom)} entries")
+            self.logger.debug(f"fetched BOM from BUDA BOM: {len(bom)} entries")
             return bom
 
         # jimk: Get the
-        page_iterator = self.boto_paginator.paginate(Bucket=self.s3_image_bucket, Prefix=full_image_group_path)
+        page_iterator = self.boto_paginator.paginate(Bucket=self.s3_image_bucket.name, Prefix=full_image_group_path)
 
         # #10 filter out image files
         # filtered_iterator = page_iterator.search("Contents[?contains('Key','json') == `False`]")
@@ -97,5 +105,5 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
                 image_list.extend([dat["Key"].replace(full_image_group_path, "") for dat in page["Contents"] if
                                    '.json' not in dat["Key"]])
 
-        print("fetched BOM from S3 list_objects: {len(image_list} entries.")
+        self.logger.debug(f"fetched BOM from S3 list_objects: {len(image_list)} entries.")
         return image_list

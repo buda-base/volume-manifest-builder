@@ -4,20 +4,37 @@
       <w>bdrc</w>
       <w>boto</w>
       <w>buda</w>
+      <w>budabom</w>
       <w>cddd</w>
+      <w>csvf</w>
       <w>csvline</w>
       <w>csvlock</w>
       <w>csvwriter</w>
+      <w>dest</w>
+      <w>extformatmismatch</w>
       <w>filenameroot</w>
       <w>fwork</w>
+      <w>getpid</w>
       <w>iiif</w>
+      <w>imagegroup</w>
+      <w>imagegroupn</w>
       <w>imagegroups</w>
+      <w>imgdata</w>
       <w>infoe</w>
       <w>infos</w>
       <w>inprocess</w>
+      <w>invalidformat</w>
       <w>jimk</w>
+      <w>keydoesnotexist</w>
+      <w>loglevel</w>
       <w>lxml</w>
+      <w>manifestforwork</w>
+      <w>nonbinarytif</w>
+      <w>pilmode</w>
+      <w>prog</w>
       <w>tbrc</w>
+      <w>tiffnotgroup</w>
+      <w>toolarge</w>
       <w>volumetool</w>
       <w>xist</w>
     </words>
