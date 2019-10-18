@@ -1,5 +1,4 @@
 import logging
-
 from pathlib import Path
 
 def init_app_logger(loglevel: str):
@@ -10,8 +9,8 @@ def init_app_logger(loglevel: str):
     my_log = logging.get_logger(__name__)
     to emit
     <time> <__name__>-LEVEL: message
-    :param self:
-    :param loglevel:
+    :param loglevel: string rep of python logging level
+    :type loglevel: str
     :return:
     """
     from os import getpid

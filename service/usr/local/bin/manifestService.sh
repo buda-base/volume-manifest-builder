@@ -29,5 +29,5 @@ echo $MyPID > $PID_FILE
 
 # [[ -d ${LOG_DIR} ]] || { mkdir -p ${LOG_DIR} ;}
 
-$MANIFEST_PROG -l  debug
+$MANIFEST_PROG -l  debug -i 600
 

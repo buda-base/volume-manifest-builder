@@ -6,6 +6,7 @@
         <list>
           <option value="N803" />
           <option value="N802" />
+          <option value="N806" />
         </list>
       </option>
       <option name="ignoredBaseClasses">
@@ -30,6 +31,11 @@
           <option value="v_m_t.manifestforwork.arg_namespace" />
         </list>
       </option>
+    </inspection_tool>
+    <inspection_tool class="SpellCheckingInspection" enabled="true" level="TYPO" enabled_by_default="true">
+      <option name="processCode" value="false" />
+      <option name="processLiterals" value="true" />
+      <option name="processComments" value="false" />
     </inspection_tool>
     <inspection_tool class="UnusedProperty" enabled="true" level="INFORMATION" enabled_by_default="true" />
     <inspection_tool class="WeakerAccess" enabled="true" level="INFORMATION" enabled_by_default="true">
