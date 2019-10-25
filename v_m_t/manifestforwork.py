@@ -152,7 +152,7 @@ def exception_handler(exception_type, exception):
 def prolog() -> object:
     # Skip noisy exceptions
     import sys
-    sys.tracebacklimit = 0
+    # sys.tracebacklimit = 8
     sys.excepthook = exception_handler
 
     args = GetArgs()
@@ -421,6 +421,8 @@ def buildWorkListFromS3(client: object) -> (str, []):
     """
     global shell_logger
 
+    shell_logger.debug(f"Getting paginator for list_objects_v2 at Bucket={S3_MANIFEST_WORK_LIST_BUCKET},"
+                       f"Prefix={todo_prefix}")
     page_iterator = client.get_paginator('list_objects_v2').paginate(Bucket=S3_MANIFEST_WORK_LIST_BUCKET,
                                                                      Prefix=todo_prefix)
 

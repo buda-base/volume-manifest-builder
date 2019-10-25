@@ -12,8 +12,16 @@ No compilation of the service files is required.
 1. Identify the file system that /etc is mounted on. You will need this because the `systemctl enable` command requires the service command files to be on the same partition as the /etc/systemd folder.
 1. Create a folder and move the $S_H usr/lib files (manifest.service) there (you dont have to preserve the usr/lib hierarchy. Anywhere is fine.
 1. Run `sudo systemctl enable <path to>manifest.service. This should create a link in `/etc/systemd/system/<Install target you picked above>.d/` folder.
+1. Create the user `service`, and the following folders:
+|||
+|----|----|
+`~service/tmp`|console log
+~service/manifest`|working directory
 
-This configures the system to launch the Image 1. you should then be able to `systemctl status manifest.service` and start and run it.
+This configures the system to launch the service on multi-user boot. You can test it
+with `sudo systemctl start manifest.service` and look in `~service/tmp/con` for output
+
+should then be able to `systemctl status manifest.service` and start and run it.
  
 Manifest Service on boot.
 

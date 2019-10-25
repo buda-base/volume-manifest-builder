@@ -67,14 +67,23 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
 
         s3 = boto3.client('s3')
 
-        obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key=bom_path)
-        #
-        # Python 3 read() returns bytes which need decode
-        json_body: {} = json.loads(obj['Body'].read().decode('utf - 8'))
+        rl: list = []
 
-        self.logger.debug("read bom from s3 object size %d json body size %d", len(obj), len(json_body))
+        objs = list(self.s3_image_bucket.objects.filter(Prefix=bom_path))
+        if len(objs) > 0 and objs[0].key == bom_path:
+            self.logger.debug(f"found s3://{self.s3_image_bucket.name}/{bom_path}")
+            obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key=bom_path)
+            #
+            # Python 3 read() returns bytes which need decode
+            json_body: {} = json.loads(obj['Body'].read().decode('utf - 8'))
 
-        return [x[VMT_BUDABOM_KEY] for x in json_body]
+            self.logger.debug("read bom from s3 object size %d json body size %d", len(obj), len(json_body))
+
+            rl = [x[VMT_BUDABOM_KEY] for x in json_body]
+        else:
+            self.logger.debug(f"can't find s3://{self.s3_image_bucket.name}/{bom_path}")
+
+        return rl
 
     def get_image_names_from_S3(self, work_rid: str, image_group: str) -> []:
         """

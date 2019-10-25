@@ -29,6 +29,7 @@
           <option value="object.*" />
           <option value="object.sourceFile" />
           <option value="v_m_t.manifestforwork.arg_namespace" />
+          <option value="boto.s3.bucket.Bucket.objects" />
         </list>
       </option>
     </inspection_tool>
