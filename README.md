@@ -33,7 +33,8 @@ Python 3.6 or newer. It is highly recommended to use `pip` to install, to manage
 # Installation
 ## PIP
 PyPI contains `volume-manifest-tool` Install is simply
-`pip install volume-manifest-tool`
+`sudo python3 -m pip install --upgrade volume-manifest-tool` to install system-wide (which is needed to run as a service)
+To install and run locally, `python3 -m pip install --upgrade volume-manifest-tool` will do. 
 
 When you install `volume-manifest-tool` two entry points are defined in `/usr/local/bin`:
 - `manifestforwork` the commad mode
