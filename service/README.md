@@ -7,7 +7,7 @@ You will have to change the `manifest.service` file's  `[Install]` section's `Wa
 ## Build instructions
 No compilation of the service files is required.
 ## Installation
-1. Copy all the contents of this project's `service` folder  to the target machine. For this example, this will be called `$S_H` (for $SERVICE_HOME). The remaining instructions are arried out on the target machine. 
+1. Copy all the contents of this project's `service` folder  to the target machine. For this example, this will be called `$S_H` (for $SERVICE_HOME). The remaining instructions are carried out on the target machine. 
 1. Become super user.
 1. Identify the file system that /etc is mounted on. You will need this because the `systemctl enable` command requires the service command files to be on the same partition as the /etc/systemd folder.
 1. Create a folder and move the $S_H usr/lib files (manifest.service) there (you dont have to preserve the usr/lib hierarchy. Anywhere is fine.
