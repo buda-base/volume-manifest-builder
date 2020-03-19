@@ -1,0 +1,8 @@
+[Unit]
+Description = prepare works for BUDA IIIF reader
+
+[Service]
+ExecStart = /usr/local/bin/manifest.sh start
+
+[Install]
+WantedBy = default.target
