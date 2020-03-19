@@ -1,0 +1,21 @@
+# systemd for manifestservice
+#
+[Unit]
+Description = Volume Manifest Tool Service
+
+[Service]
+ExecStart=/usr/local/bin/v-m-t/manifest_shell.sh start
+ExecReload=/usr/local/bin/v-m-t/manifest_shell.sh reload
+ExecStop=/usr/local/bin/v-m-t/manifest_shell.sh stop
+#
+# nothing special needed
+User=service
+WorkingDirectory=/home/service/volume-manifest-tool
+
+[Install]
+Alias=manifest
+#
+# This is on ubuntu
+#WantedBy=default.target
+# This is on Debian 9
+WantedBy=multi-user.target
