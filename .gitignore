@@ -18,7 +18,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# I have a lib folder I need
+build/lib/
 lib64/
 parts/
 sdist/

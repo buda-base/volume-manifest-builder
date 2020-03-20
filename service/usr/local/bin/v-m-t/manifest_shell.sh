@@ -3,7 +3,7 @@
 #
 
 SERVICE_NAME=manifestService
-SERVICE_SH=${SERVICE_NAME}.sh
+SERVICE_SH_PATH=/usr/local/bin/v-m-t/${SERVICE_NAME}.sh
 
 
 PID_FILE=~/tmp/${SERVICE_SH}.pid
@@ -12,7 +12,7 @@ PID_FILE=~/tmp/${SERVICE_SH}.pid
 function d_start()
 {
 	echo "${SERVICE_NAME}: starting service"
-	/usr/local/bin/${SERVICE_SH} ${PID_FILE}  >> ~/tmp/con 2>&1
+	${SERVICE_SH_PATH} ${PID_FILE}  >> ~/tmp/con 2>&1
 
 }
 
