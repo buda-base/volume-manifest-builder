@@ -127,12 +127,15 @@ def parse_args(arg_namespace: object) -> None:
     _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
                                       usage="%(prog)s sourcefile.")
 
-    _parser.add_argument("-l", "--logLevel", dest='log_level', action='store',
+    _parser.add_argument("-d", "--debugLevel", dest='log_level', action='store',
                          choices=['info', 'warning', 'error', 'debug', 'critical'], default='info',
                          help="choice values are from python logging module")
 
-    _parser.add_argument("-d", "--logParent", dest='log_parent', action='store', default='/tmp',
+    _parser.add_argument("-l", "--logDir", dest='log_parent', action='store', default='/tmp',
                          help="Path to log file directory")
+
+    _parser.add_argument("-c", '--checkImageInternals', dest='check_image_internals', action='store', type=bool,
+                         default=False, help="Check image internals (slower)")
     #
     # sourceFile only used in manifestForList
     _parser.add_argument('sourceFile', help="File containing one RID per line.", nargs='?', type=argparse.FileType('r'))
@@ -195,8 +198,9 @@ def manifestForList(sourceFile: TextIO):
                 work_rid = work_rid.strip()
                 try:
                     manifestForWork(client, dest_bucket, work_rid, csvwriter)
-                except:
-                    shell_logger.error(f"{work_rid} failed to build manifest")
+                except Exception as inst:
+
+                    shell_logger.error(f"{work_rid} failed to build manifest {type(inst)} {inst.args} {inst} ")
 
 
 
@@ -458,4 +462,4 @@ def buildWorkListFromS3(client: object) -> (str, []):
 
 
 if __name__ == '__main__':
-    main()  # manifestFromS3()
+    main()  #  #   manifestFromS3()

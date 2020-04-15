@@ -85,25 +85,31 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         """
 
         image_list = []
-        full_image_group_path: str = get_s3_folder_prefix(work_rid, image_group)
-        bom: [] = self.read_bom_from_s3(full_image_group_path + VMT_BUDABOM)
+        full_image_group_path: str
+        try:
+            full_image_group_path = get_s3_folder_prefix(work_rid, image_group)
+            bom: [] = self.read_bom_from_s3(full_image_group_path + VMT_BUDABOM)
 
-        if len(bom) > 0:
-            self.logger.debug(f"fetched BOM from BUDA BOM: {len(bom)} entries")
-            return bom
+            if len(bom) > 0:
+                self.logger.debug(f"fetched BOM from BUDA BOM: {len(bom)} entries")
+                return bom
 
-        # jimk: Get the
-        page_iterator = self.boto_paginator.paginate(Bucket=self.s3_image_bucket.name, Prefix=full_image_group_path)
+            # jimk: Get the
+            page_iterator = self.boto_paginator.paginate(Bucket=self.s3_image_bucket.name, Prefix=full_image_group_path)
 
-        # #10 filter out image files
-        # filtered_iterator = page_iterator.search("Contents[?contains('Key','json') == `False`]")
-        # filtered_iterator = page_iterator.search("Contents.Key[?contains(@,'json') == `False`][]")
-        # filtered_iterator = page_iterator.search("[?contains(Contents.Key,'json') == `false`][]")
-        # page_iterator:
-        for page in page_iterator:
-            if "Contents" in page:
-                image_list.extend([dat["Key"].replace(full_image_group_path, "") for dat in page["Contents"] if
-                                   '.json' not in dat["Key"]])
+            # #10 filter out image files
+            # filtered_iterator = page_iterator.search("Contents[?contains('Key','json') == `False`]")
+            # filtered_iterator = page_iterator.search("Contents.Key[?contains(@,'json') == `False`][]")
+            # filtered_iterator = page_iterator.search("[?contains(Contents.Key,'json') == `false`][]")
+            # page_iterator:
+            for page in page_iterator:
+                if "Contents" in page:
+                    image_list.extend([dat["Key"].replace(full_image_group_path, "") for dat in page["Contents"] if
+                                       '.json' not in dat["Key"]])
 
-        self.logger.debug(f"fetched BOM from S3 list_objects: {len(image_list)} entries.")
+            self.logger.debug(f"fetched BOM from S3 list_objects: {len(image_list)} entries.")
+        except Exception as eek:
+            self.logger.warning("No images in group {}", full_image_group_path)
+        finally:
+            pass
         return image_list
