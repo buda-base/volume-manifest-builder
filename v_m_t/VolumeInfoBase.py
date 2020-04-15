@@ -109,7 +109,7 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
 
             self.logger.debug(f"fetched BOM from S3 list_objects: {len(image_list)} entries.")
         except Exception as eek:
-            self.logger.warning("No images in group {}", full_image_group_path)
+            self.logger.warning(f"Could not populate BOM from S3 {full_image_group_path}")
         finally:
             pass
         return image_list

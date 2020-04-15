@@ -83,6 +83,8 @@ class VolumeInfoBUDA(VolumeInfoBase):
                         vi = VolInfo(image_list, g)
                         # This is an interim hack to compensate for BUDA not having the information we need
                         vol_info.append(vi)
+                    else:
+                        self.logger.warn(f"No images found in group {g}")
         # Swallow all exceptions.
         except Exception as eek:
             pass
