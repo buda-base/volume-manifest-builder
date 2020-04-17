@@ -29,5 +29,5 @@ echo $MyPID > $PID_FILE
 
 # [[ -d ${LOG_DIR} ]] || { mkdir -p ${LOG_DIR} ;}
 
-$MANIFEST_PROG -l  debug -i 600
+$MANIFEST_PROG -l /var/log/VolumeManifestTool -d  debug -i 600
 

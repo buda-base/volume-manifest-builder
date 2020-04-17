@@ -15,15 +15,16 @@ import botocore
 from PIL import Image
 from boto.s3.bucket import Bucket
 
+from .AOLogger import AOLogger
 from .S3WorkFileManager import S3WorkFileManager
 from .getS3FolderPrefix import get_s3_folder_prefix
-from .init_app_logger import init_app_logger
 from .s3customtransfer import S3CustomTransfer
 
 S3_DEST_BUCKET: str = "archive.tbrc.org"
 
 # for manifestFromS3
 S3_MANIFEST_WORK_LIST_BUCKET: str = "manifest.bdrc.org"
+LOG_FILE_ROOT: str = "/var/log/VolumeManifestTool"
 todo_prefix: str = "processing/todo/"
 processing_prefix: str = "processing/inprocess/"
 done_prefix: str = "processing/done/"
@@ -36,7 +37,7 @@ csvlock: Lock = Lock()
 s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUCKET, todo_prefix, processing_prefix,
                                                        done_prefix)
 
-shell_logger: logging = None
+shell_logger: AOLogger = None
 
 
 # os.environ['AWS_SHARED_CREDENTIALS_FILE'] = "/etc/buda/volumetool/credentials"
@@ -95,7 +96,7 @@ def manifestFromS3():
             if len(work_list) > 0:
                 s3_work_manager.mark_done(work_list, work_list)
         except Exception as eek:
-            shell_logger.exception(eek)
+            shell_logger.log(logging.ERROR, eek)
         time.sleep(abs(args.poll_interval))
 
 
@@ -125,8 +126,16 @@ def parse_args(arg_namespace: object) -> None:
 
     _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
                                       usage="%(prog)s sourcefile.")
-    _parser.add_argument("-l", "--loglevel", dest='log_level', action='store',
-                         choices=['info', 'warning', 'error', 'debug', 'critical'], default='info')
+
+    _parser.add_argument("-d", "--debugLevel", dest='log_level', action='store',
+                         choices=['info', 'warning', 'error', 'debug', 'critical'], default='info',
+                         help="choice values are from python logging module")
+
+    _parser.add_argument("-l", "--logDir", dest='log_parent', action='store', default='/tmp',
+                         help="Path to log file directory")
+
+    _parser.add_argument("-c", '--checkImageInternals', dest='check_image_internals', action='store', type=bool,
+                         default=False, help="Check image internals (slower)")
     #
     # sourceFile only used in manifestForList
     _parser.add_argument('sourceFile', help="File containing one RID per line.", nargs='?', type=argparse.FileType('r'))
@@ -136,30 +145,30 @@ def parse_args(arg_namespace: object) -> None:
     _parser.parse_args(namespace=arg_namespace)
 
 
-def exception_handler(exception_type, exception):
+def exception_handler(exception_type, exception, traceback):
     """
     All your trace are belong to us!
     your format
     """
-
     error_string: str = f"{exception_type.__name__}: {exception}"
+
     if shell_logger is None:
         print(error_string)
     else:
-        shell_logger.error(error_string)
+        shell_logger.exception(error_string)
 
 
-def prolog() -> object:
+def prolog(log_level_root="/tmp/VolumeManifestTool") -> object:
     # Skip noisy exceptions
     import sys
-    sys.tracebacklimit = 0
+    from pathlib import Path
+    global shell_logger
+    # sys.tracebacklimit = 0
     sys.excepthook = exception_handler
 
     args = GetArgs()
     parse_args(args)
-    init_app_logger(args.log_level)
-    global shell_logger
-    shell_logger = logging.getLogger(__name__)
+    shell_logger = AOLogger(__name__, args.log_level, Path(args.log_parent))
 
     return args
 
@@ -170,6 +179,7 @@ def manifestForList(sourceFile: TextIO):
     reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
     """
+    global shell_logger
 
     if sourceFile is None:
         raise ValueError("Usage: manifestforwork sourceFile where sourceFile contains a list of work RIDs")
@@ -186,7 +196,12 @@ def manifestForList(sourceFile: TextIO):
         with sourceFile as f:
             for work_rid in f.readlines():
                 work_rid = work_rid.strip()
-                manifestForWork(client, dest_bucket, work_rid, csvwriter)
+                try:
+                    manifestForWork(client, dest_bucket, work_rid, csvwriter)
+                except Exception as inst:
+
+                    shell_logger.error(f"{work_rid} failed to build manifest {type(inst)} {inst.args} {inst} ")
+
 
 
 def manifestForWork(client: boto3.client, bucket: Bucket, workRID, csvwriter):
@@ -195,6 +210,7 @@ def manifestForWork(client: boto3.client, bucket: Bucket, workRID, csvwriter):
     """
 
     global shell_logger
+
     vol_infos: [] = getVolumeInfos(workRID, client, bucket)
     if len(vol_infos) == 0:
         shell_logger.error(f"Could not find image groups for {workRID}")
@@ -202,6 +218,7 @@ def manifestForWork(client: boto3.client, bucket: Bucket, workRID, csvwriter):
 
     for vi in vol_infos:
         manifestForVolume(client, workRID, vi, csvwriter)
+
 
 
 def manifestForVolume(client, workRID, vi, csvwriter):
@@ -445,5 +462,4 @@ def buildWorkListFromS3(client: object) -> (str, []):
 
 
 if __name__ == '__main__':
-    # main()
-    manifestFromS3()
+    main()  #  #   manifestFromS3()

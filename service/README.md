@@ -18,8 +18,11 @@ This service installation is built on the `systemctl` platform. The example `def
 You will have to change the `manifest.service` file's  `[Install]` section's `WantedBy` property to match the host platform's target.
 #### Application environment
 * User: service
-* Folder ~service/v-m-t
+* Folder ~service/volume-manifest-tool
 * Folder: /var/log/VolumeManifestTool - writable by `service`
+* Environment variables required - See [Setting environment variable for service](https://serverfault.com/questions/413397/how-to-set-environment-variable-in-systemd-service). Create and populate these variables:
+    * AO_AWS_SNS_TOPIC_ARN
+
 ## Build instructions
 No compilation of the service files is required.
 ## Installation

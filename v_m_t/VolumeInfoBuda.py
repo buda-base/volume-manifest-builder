@@ -43,8 +43,14 @@ class VolumeInfoBUDA(VolumeInfoBase):
     - image list
     - image group ID
 
-    The information should be fetched (in csv or json) from lds-pdi, query for W22084 for instance is:
-    http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:W22084&format=csv&profile=simple&pageSize=500
+    The information should be fetched (in csv or json) from lds-pdi, query for W00EGS1016299 for instance is:
+    http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:W00EGS1016299&format=csv&profile=simple&pageSize=500
+    item,list,grId
+    bdr:I00EGS1016299,,I1CZ5001
+    bdr:I00EGS101629,I1CZ50020001.tif:1266,I1CZ5002
+    bdr:I00EGS1016299,I1CZ50030001.tif:1136,I1CZ5003
+    bdr:I00EGS1016299,I1CZ50040001.tif:1276,I1CZ5004
+    bdr:I00EGS1016299,I1CZ50050001.tif:928,I1CZ5005
     """
 
     def fetch(self, work_rid: str) -> object:
@@ -56,23 +62,33 @@ class VolumeInfoBUDA(VolumeInfoBase):
         vol_info = []
         req = f'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:{work_rid}' \
               '&format=csv&profile=simple&pageSize=500'
-        with request.urlopen(req) as response:
-            _info = response.read()
-            info = _info.decode('utf8').strip()
-            for line in info.split('\n')[1:]:
-                _, l, g = line.replace('"', '').split(',')
-                #
-                # jimk: mod: redefine volInfo to expand list here, rather than just before processing.
-                image_list = expand_image_list(l)
+        try:
+            with request.urlopen(req) as response:
+                _info = response.read()
+                info = _info.decode('utf8').strip()
+                lines = info.split('\n')[1:]
+                for line in lines:  # info.split('\n')[1:]:
+                    _, l, g = line.replace('"', '').split(',')
+                    #
+                    # jimk: mod: redefine volInfo to expand list here, rather than just before processing.
+                    image_list = expand_image_list(l)
 
-                # This is the case when the image list processing has broken or is not
-                # # available. Fallback to slicing the image groups vertically
-                if len(image_list) == 0:
-                    image_list = self.get_image_names_from_S3(work_rid, g)
+                    # This is the case when the image list processing has broken or is not
+                    # # available. Fallback to slicing the image groups vertically
+                    if len(image_list) == 0:
+                        image_list = self.get_image_names_from_S3(work_rid, g)
 
-                vi = VolInfo(image_list, g)
-
-                # This is an interim hack to compensate for BUDA not having the information we need
-                vol_info.append(vi)
+                    # Dont add empty vol infos
+                    if len(image_list) > 0:
+                        vi = VolInfo(image_list, g)
+                        # This is an interim hack to compensate for BUDA not having the information we need
+                        vol_info.append(vi)
+                    else:
+                        self.logger.warn(f"No images found in group {g}")
+        # Swallow all exceptions.
+        except Exception as eek:
+            pass
+        finally:
+            pass
 
         return vol_info

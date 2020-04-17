@@ -3,8 +3,9 @@
 #
 
 SERVICE_NAME=manifestService
-SERVICE_SH_PATH=/usr/local/bin/v-m-t/${SERVICE_NAME}.sh
 
+SERVICE_SH=${SERVICE_NAME}.sh
+SERVICE_SH_PATH=/usr/local/bin/v-m-t/${SERVICE_SH}
 
 PID_FILE=~/tmp/${SERVICE_SH}.pid
 
