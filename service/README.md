@@ -1,4 +1,8 @@
-# service
+# TODO
+* copy sattva:~dev/volume-manifest-tool/etc up to Git
+* document need credentials in /.aws (running as root)
+* document need manifest.sh installed from etc.
+* make sure all service/uer/local/bin files are exec# service
 Define a service which launches on startup to run the volume manifest tool
 This service is built for a specific AWS AMI running Ubuntu (problems with Python 3.7 on ), but has also been tested on Debian 9 and 10 (stretch).
 ## Operating environment
@@ -18,6 +22,7 @@ You will have to change the `manifest.service` file's  `[Install]` section's `Wa
 * Folder: /var/log/VolumeManifestTool - writable by `service`
 * Environment variables required - See [Setting environment variable for service](https://serverfault.com/questions/413397/how-to-set-environment-variable-in-systemd-service). Create and populate these variables:
     * AO_AWS_SNS_TOPIC_ARN
+
 ## Build instructions
 No compilation of the service files is required.
 ## Installation
