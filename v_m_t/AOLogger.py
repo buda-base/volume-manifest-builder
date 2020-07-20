@@ -96,13 +96,14 @@ class AOLogger:
             return
         self.py_logger.log(logging_level, message)
 
-        if logging_level == logging.CRITICAL or logging_level == logging.ERROR and message != "KeyboardInterrupt":
-            try:
-                self.logging_sns_client.publish(TopicArn=self.sns_arn, Message=f'{message}',
-                                            Subject=f"{logging.getLevelName(logging_level)} in {self.app_name}",
-                                            MessageStructure='string')
-            finally:
-                pass
+        if self.sns_arn:
+            if logging_level == logging.CRITICAL or logging_level == logging.ERROR and message != "KeyboardInterrupt":
+                try:
+                    self.logging_sns_client.publish(TopicArn=self.sns_arn, Message=f'{message}',
+                                                    Subject=f"{logging.getLevelName(logging_level)} in {self.app_name}",
+                                                    MessageStructure='string')
+                finally:
+                    pass
 
     def error(self, message: str):
         self.log(logging.ERROR, message)
