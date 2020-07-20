@@ -13,7 +13,6 @@ class VolumeInfoeXist(VolumeInfoBase):
     The information should be fetched (in csv or json) from lds-pdi, query for W22084 for instance is:
     http://www.tbrc.org/public?module=work&query=work-igs&arg=WorkRid
     """
-
     def fetch(self, work_rid: str) -> []:
         """
         :param work_rid: Resource id
@@ -35,11 +34,13 @@ class VolumeInfoeXist(VolumeInfoBase):
                 info = info.decode('utf8').strip()
 
                 # work-igs returns one node with space delimited list of image groups
-                igs: str = etree.fromstring(info).text.split(" ")
-                vol_info = self.expand_groups(work_rid, igs)
+                rTree = etree.fromstring(info)
+                igText = rTree.text
+                if igText:
+                    igs = igText.split(" ")
+                    vol_info = self.expand_groups(work_rid, igs)
         except etree.ParseError:
             pass
-
         return vol_info
 
     def expand_groups(self, work_rid: str, image_groups: []) -> object:
