@@ -4,6 +4,7 @@ import logging
 
 from boto.s3.bucket import Bucket
 from boto3 import client
+from botocore.exceptions import ClientError
 from botocore.paginate import Paginator
 
 from .getS3FolderPrefix import get_s3_folder_prefix
@@ -66,13 +67,21 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         import json
 
         s3 = boto3.client('s3')
+        json_body: {} = {}
 
-        obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key=bom_path)
-        #
-        # Python 3 read() returns bytes which need decode
-        json_body: {} = json.loads(obj['Body'].read().decode('utf - 8'))
+        try:
+            obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key=bom_path)
+            #
+            # Python 3 read() returns bytes which need decode
+            json_body = json.loads(obj['Body'].read().decode('utf - 8'))
 
-        self.logger.debug("read bom from s3 object size %d json body size %d", len(obj), len(json_body))
+            self.logger.info("read bom from s3 object size %d json body size %d", len(obj), len(json_body))
+        except ClientError as ex:
+            if ex.response['Error']['Code'] == 'NoSuchKey':
+                self.logger.warning(
+                    "Exception NoSuchKey trying to retrieve BOM f{bom_path}  from bucket f{self.s3_image_bucket.name}")
+            else:
+                raise
 
         return [x[VMT_BUDABOM_KEY] for x in json_body]
 
@@ -85,7 +94,7 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         """
 
         image_list = []
-        full_image_group_path: str
+        full_image_group_path: str = ""
         try:
             full_image_group_path = get_s3_folder_prefix(work_rid, image_group)
             bom: [] = self.read_bom_from_s3(full_image_group_path + VMT_BUDABOM)
@@ -108,8 +117,8 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
                                        '.json' not in dat["Key"]])
 
             self.logger.debug(f"fetched BOM from S3 list_objects: {len(image_list)} entries.")
-        except Exception as eek:
-            self.logger.warning(f"Could not populate BOM from S3 {full_image_group_path}")
+        except Exception:
+            self.logger.warning(f"Could not populate BOM from S3 {full_image_group_path + VMT_BUDABOM}")
         finally:
             pass
         return image_list
