@@ -231,7 +231,7 @@ def manifestForVolume(client, workRID, vi, csvwriter):
 
     s3_folder_prefix: str = get_s3_folder_prefix(workRID, vi.imageGroupID)
     if manifestExists(client, s3_folder_prefix):
-        shell_logger.info("manifest exists: " + workRID + "-" + vi.imageGroupID)  # return
+        shell_logger.info(f"manifest exists: {workRID}-{vi.imageGroupID} path :{s3_folder_prefix}:")
     manifest = generateManifest(client, s3_folder_prefix, vi.imageList, csvwriter, workRID, vi.imageGroupID)
     uploadManifest(client, s3_folder_prefix, manifest)
 
