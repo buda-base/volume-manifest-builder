@@ -70,17 +70,20 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         json_body: {} = {}
 
         try:
-            obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key=bom_path)
+            obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key='NO' + bom_path)
             #
             # Python 3 read() returns bytes which need decode
             json_body = json.loads(obj['Body'].read().decode('utf - 8'))
 
-            self.logger.info("read bom from s3 object size %d json body size %d", len(obj), len(json_body))
+            self.logger.info("read bom from s3 object size %d json body size %d path %s",
+                             len(obj), len(json_body), bom_path)
         except ClientError as ex:
+            errstr: str = f"ClientError Exception {ex.response['Error']['Code']} Message f{ex.response['Error']['Message']} on object {ex.response['Error']['Key']} for our BOMPath  {bom_path}  from bucket f{self.s3_image_bucket.name}"
+
             if ex.response['Error']['Code'] == 'NoSuchKey':
-                self.logger.warning(
-                    "Exception NoSuchKey trying to retrieve BOM f{bom_path}  from bucket f{self.s3_image_bucket.name}")
+                self.logger.warning(str)
             else:
+                self.logger.error(str)
                 raise
 
         return [x[VMT_BUDABOM_KEY] for x in json_body]

@@ -48,6 +48,11 @@ When you install `volume-manifest-tool` two entry points are defined in `/usr/lo
 ## Building a distribution
 
 Be sure to check PyPI for current release, and update accoringly. Use [PEP440](https://www.python.org/dev/peps/pep-0440/#post-releases) for naming releases.
+
+### Prerequisites
+- `pip3 install wheel`
+- `pip3 install twine`
+
 ```bash
 python3 setup.py bdist_wheel
 twine upload dist/<thing you built

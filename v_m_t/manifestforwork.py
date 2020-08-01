@@ -14,6 +14,7 @@ import boto3
 import botocore
 from PIL import Image
 from boto.s3.bucket import Bucket
+from botocore.exceptions import ClientError
 
 from .AOLogger import AOLogger
 from .S3WorkFileManager import S3WorkFileManager
@@ -266,9 +267,14 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
     manifest_gzip = gzip_str(manifest_str)
 
     key = s3folderPrefix + 'dimensions.json'
-    shell_logger.info("writing " + key)
-    bucket.put_object(Key=key, Body=manifest_gzip,
-                      Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'}, Bucket=S3_DEST_BUCKET)
+    shell_logger.debug("writing " + key)
+    try:
+        bucket.put_object(Key=key, Body=manifest_gzip,
+                          Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'},
+                          Bucket=S3_DEST_BUCKET)
+        shell_logger.info("wrote " + key)
+    except ClientError:
+        shell_logger.warn(f"Couldn't write json {key}")
 
 
 def manifestExists(client, s3folderPrefix):
