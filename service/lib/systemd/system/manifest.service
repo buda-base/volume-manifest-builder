@@ -1,16 +1,16 @@
-# systemd for manifestservice
+# systemd for manifest.service
 #
 [Unit]
-Description = Volume Manifest Tool Service
+Description = Volume Manifest Builder Service
 
 [Service]
-ExecStart=/usr/local/bin/v-m-t/manifest_shell.sh start
-ExecReload=/usr/local/bin/v-m-t/manifest_shell.sh reload
-ExecStop=/usr/local/bin/v-m-t/manifest_shell.sh stop
+ExecStart=/usr/local/bin/v-m-b/manifest_shell.sh start
+ExecReload=/usr/local/bin/v-m-b/manifest_shell.sh reload
+ExecStop=/usr/local/bin/v-m-b/manifest_shell.sh stop
 #
 # nothing special needed
 User=service
-WorkingDirectory=/home/service/volume-manifest-tool
+WorkingDirectory=/home/service/volume-manifest-builder
 
 [Install]
 Alias=manifest

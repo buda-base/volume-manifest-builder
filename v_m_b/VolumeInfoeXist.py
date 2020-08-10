@@ -3,7 +3,7 @@
 from typing import List, Any
 from urllib import request
 
-from v_m_t.VolumeInfoBase import VolumeInfoBase, VolInfo
+from v_m_b.VolumeInfoBase import VolumeInfoBase, VolInfo
 
 
 class VolumeInfoeXist(VolumeInfoBase):

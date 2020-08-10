@@ -17,8 +17,7 @@ PID_FILE=${1?"usage $ME pidFileName"}
 MANIFEST_PROG=/usr/local/bin/manifestFromS3
 MyPID=$$
 
-echo $MyPID > $PID_FILE
-
+echo $MyPID >$PID_FILE
 
 # MANIFEST_PROG now handles logging
 # LOG_DIR=~/manifest/log
@@ -29,5 +28,4 @@ echo $MyPID > $PID_FILE
 
 # [[ -d ${LOG_DIR} ]] || { mkdir -p ${LOG_DIR} ;}
 
-$MANIFEST_PROG -l /var/log/VolumeManifestTool -d  debug -i 600
-
+$MANIFEST_PROG -l /var/log/VolumeManifestBuilder -d debug -i 600
