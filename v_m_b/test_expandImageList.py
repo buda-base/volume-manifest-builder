@@ -1,4 +1,4 @@
-from v_m_t.VolumeInfoBuda import expand_image_list
+from v_m_b.VolumeInfoBuda import expand_image_list
 
 
 def test_expand():

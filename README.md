@@ -26,7 +26,7 @@ Internal tool to create json manifests for volumes present in S3 for the IIIF pr
 Python 3.6 or newer. It is highly recommended to use `pip` to install, to manage dependencies. If you **must** do it yourself, you can refer to `setup.py` for the dependency list.
 
 ##### Environment
-1. Write access to `/var/log/VolumeManifestTool` which must exist.
+1. Write access to `/var/log/VolumeManifestBuilder` which must exist.
 2. `systemctl` service management, if you want to use the existing materials to install as a service.
 
 
@@ -34,14 +34,14 @@ Python 3.6 or newer. It is highly recommended to use `pip` to install, to manage
 ## PIP
 PyPI contains `volume-manifest-tool` Install is simply
 `sudo python3 -m pip install --upgrade volume-manifest-tool` to install system-wide (which is needed to run as a service)
-To install and run locally, `python3 -m pip install --upgrade volume-manifest-tool` will do. 
+To install and run locally, `python3 -m pip install --upgrade volume-manifest-builder` will do. 
 
-When you install `volume-manifest-tool` two entry points are defined in `/usr/local/bin`:
+When you install `volume-manifest-builder` two entry points are defined in `/usr/local/bin`:
 - `manifestforwork` the commad mode
 - `manifestFromS3` the mode which runs continuously, polling an S3 resource for a file, and processing all the files it finds.
  
 ## Development
-`volume-manifest-tool` is hosted on [BUDA Github volume-manifest-tool](https://github.com/buda-base/volume-manifest-tool/)
+`volume-manifest-builder` is hosted on [BUDA Github volume-manifest-builder](https://github.com/buda-base/volume-manifest-builder/)
 
 - Credentials: you must have the input credentials for a specific AWS user installed to deposit into the archives.
 
@@ -58,7 +58,7 @@ python3 setup.py bdist_wheel
 twine upload dist/<thing you built
 ```
 ## Usage
-`volume-manifest-tool` has two modes:
+`volume-manifest-builder` has two modes:
 + command line, which allows using a list of workRIDS on a local system
 + service, which continually polls a well-known location, `s3://manifest.bdrc.org/processing/todo/` for a file. 
 
@@ -101,9 +101,9 @@ See above for argument explanations
  
 
 ### Logging
-All messages are output to `/var/log/VolumeManifestTool/`
+All messages are output to `/var/log/VolumeManifestBuilder/`
 ### Output
-`volume-manifest-tool` also probes images for errors, which it writes into its working directory. This functionality largely duplicates other tools, so it is not documented further.
+`volume-manifest-builder` also probes images for errors, which it writes into its working directory. This functionality largely duplicates other tools, so it is not documented further.
 ## Service
 See [Service Readme](service/README.md) for details on installing manifestFromS3 as a service on `systemctl` supporting platforms.
 
