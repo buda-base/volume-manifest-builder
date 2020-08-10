@@ -1,4 +1,4 @@
-# `volume-manifest-tool`
+# `bdrc-volume-manifest-builder`
 ## Intent
 This project originated as a script to extract image dimensions from a work, and:
 + write the dimensions to a json file
@@ -32,9 +32,9 @@ Python 3.6 or newer. It is highly recommended to use `pip` to install, to manage
 
 # Installation
 ## PIP
-PyPI contains `volume-manifest-tool` Install is simply
-`sudo python3 -m pip install --upgrade volume-manifest-tool` to install system-wide (which is needed to run as a service)
-To install and run locally, `python3 -m pip install --upgrade volume-manifest-builder` will do. 
+PyPI contains `bdrc-volume-manifest-builde` Install is simply
+`sudo python3 -m pip install --upgrade bdrc-volume-manifest-builder` to install system-wide (which is needed to run as a service)
+To install and run locally, `python3 -m pip install --upgrade bdrc-volume-manifest-builder` will do. 
 
 When you install `volume-manifest-builder` two entry points are defined in `/usr/local/bin`:
 - `manifestforwork` the commad mode

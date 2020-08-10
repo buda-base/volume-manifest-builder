@@ -1,4 +1,4 @@
-# systemd for manifestservice
+# systemd for manifest.service
 #
 [Unit]
 Description = Volume Manifest Builder Service

@@ -32,6 +32,6 @@ No compilation of the service files is required.
 1. Identify the file system that /etc is mounted on. You will need this because the `systemctl enable` command requires the service command files to be on the same partition as the /etc/systemd folder.
 1. Create a folder and move the $S_H usr/lib files (manifest.service) there (you dont have to preserve the usr/lib hierarchy. Anywhere is fine, but it should at least not e in your login folder.
 1. copy the $S_H/usr/local/bin/v-m-b folder to /usr/local/bin, so that you have /usr/local/bin/v-m-b
-1. Run `sudo systemctl enable <path to>manifest.service. This should create a link in `/etc/systemd/system/<Install target you picked above>.d/` folder.
+1. Run `sudo systemctl enable <path to>manifest.service.` This should create a link in `/etc/systemd/system/<Install target you picked above>.d/` folder.
 
 This configures the system to launch the  /usr/local/bin/manifest-shell.sh on boot.  You can control and monitor the service using strandard `systemctl` commands. 

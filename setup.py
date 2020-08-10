@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 console_scripts = ['manifestforwork = v_m_b.manifestforwork:manifestShell',
                    'manifestFromS3 = v_m_b.manifestforwork:manifestFromS3']
-setup(name='volume-manifest-builder', version='1.0.3', packages=find_packages(),
+setup(name='bdrc-volume-manifest-builder', version='1.0.3', packages=find_packages(),
       url='https://github.com/buda-base/volume-manifest-builder/', license='', author='jimk',
       author_email='jimk@tbrc.org',
       description='Creates manifests for syncd works.', entry_points={'console_scripts': console_scripts},
