@@ -2,7 +2,8 @@
 * copy sattva:~dev/volume-manifest-tool/etc up to Git
 * document need credentials in /.aws (running as root)
 * document need manifest.sh installed from etc.
-* make sure all service/uer/local/bin files are exec# service
+* make sure all service/usr/local/bin files are executable by user `service`
+
 Define a service which launches on startup to run the volume manifest tool
 This service is built for a specific AWS AMI running Ubuntu (problems with Python 3.7 on ), but has also been tested on Debian 9 and 10 (stretch).
 ## Operating environment

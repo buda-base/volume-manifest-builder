@@ -4,6 +4,7 @@ import logging
 
 from boto.s3.bucket import Bucket
 from boto3 import client
+from botocore.exceptions import ClientError
 from botocore.paginate import Paginator
 
 from .getS3FolderPrefix import get_s3_folder_prefix
@@ -66,13 +67,25 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         import json
 
         s3 = boto3.client('s3')
+        json_body: {} = {}
 
-        obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key=bom_path)
-        #
-        # Python 3 read() returns bytes which need decode
-        json_body: {} = json.loads(obj['Body'].read().decode('utf - 8'))
+        try:
+            obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key=bom_path)
+            #
+            # Python 3 read() returns bytes which need decode
+            json_body = json.loads(obj['Body'].read().decode('utf - 8'))
 
-        self.logger.debug("read bom from s3 object size %d json body size %d", len(obj), len(json_body))
+            self.logger.info("read bom from s3 object size %d json body size %d path %s",
+                             len(obj), len(json_body), bom_path)
+        except ClientError as ex:
+            errstr: str = f"ClientError Exception {ex.response['Error']['Code']} Message f{ex.response['Error']['Message']} " \
+                          f"on object {ex.response['Error']['Key']} for our BOMPath  {bom_path}  from bucket {self.s3_image_bucket.name}"
+
+            if ex.response['Error']['Code'] == 'NoSuchKey':
+                self.logger.warning(errstr)
+            else:
+                self.logger.error(errstr)
+                raise
 
         return [x[VMT_BUDABOM_KEY] for x in json_body]
 
@@ -85,13 +98,14 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         """
 
         image_list = []
-        full_image_group_path: str
+        full_image_group_path: str = ""
         try:
             full_image_group_path = get_s3_folder_prefix(work_rid, image_group)
             bom: [] = self.read_bom_from_s3(full_image_group_path + VMT_BUDABOM)
 
             if len(bom) > 0:
-                self.logger.debug(f"fetched BOM from BUDA BOM: {len(bom)} entries")
+                self.logger.debug(
+                    f"fetched BOM from BUDA BOM: {len(bom)} entries path:{full_image_group_path + VMT_BUDABOM}:")
                 return bom
 
             # jimk: Get the
@@ -107,9 +121,10 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
                     image_list.extend([dat["Key"].replace(full_image_group_path, "") for dat in page["Contents"] if
                                        '.json' not in dat["Key"]])
 
-            self.logger.debug(f"fetched BOM from S3 list_objects: {len(image_list)} entries.")
-        except Exception as eek:
-            self.logger.warning(f"Could not populate BOM from S3 {full_image_group_path}")
+            self.logger.debug(
+                f"fetched BOM from S3 list_objects: {len(image_list)} entries. path:{full_image_group_path}")
+        except Exception:
+            self.logger.warning(f"Could not populate BOM for {full_image_group_path + VMT_BUDABOM}")
         finally:
             pass
         return image_list
