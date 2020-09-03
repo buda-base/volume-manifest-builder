@@ -16,10 +16,10 @@ from PIL import Image
 from boto.s3.bucket import Bucket
 from botocore.exceptions import ClientError
 
-from .AOLogger import AOLogger
-from .S3WorkFileManager import S3WorkFileManager
-from .getS3FolderPrefix import get_s3_folder_prefix
-from .s3customtransfer import S3CustomTransfer
+from AOLogger import AOLogger
+from S3WorkFileManager import S3WorkFileManager
+from getS3FolderPrefix import get_s3_folder_prefix
+from s3customtransfer import S3CustomTransfer
 
 S3_DEST_BUCKET: str = "archive.tbrc.org"
 
@@ -202,7 +202,6 @@ def manifestForList(sourceFile: TextIO):
                 except Exception as inst:
 
                     shell_logger.error(f"{work_rid} failed to build manifest {type(inst)} {inst.args} {inst} ")
-
 
 
 def manifestForWork(client: boto3.client, bucket: Bucket, workRID, csvwriter):

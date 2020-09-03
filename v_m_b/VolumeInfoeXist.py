@@ -24,9 +24,11 @@ class VolumeInfoeXist(VolumeInfoBase):
         # Interesting first pass failure: @ urllib.error.URLError: <urlopen error
         # [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:777)>
         # # Tried fix
-        # debugging lines needed on timb's machine also import os and import ssl
-        #if (not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None)):
-        #    ssl._create_default_https_context = ssl._create_unverified_context
+        # debugging lines needed on timb's machine also
+        import os
+        import ssl
+        if not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None):
+           ssl._create_default_https_context = ssl._create_unverified_context
 
         req = f'https://www.tbrc.org/public?module=work&query=work-igs&args={work_rid}'
 
@@ -35,7 +37,7 @@ class VolumeInfoeXist(VolumeInfoBase):
 
         try:
 
-            with request.urlopen(req,verify=false) as response:
+            with request.urlopen(req) as response:
                 info = response.read()
                 info = info.decode('utf8').strip()
 

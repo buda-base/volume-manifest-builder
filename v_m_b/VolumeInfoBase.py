@@ -9,8 +9,8 @@ from botocore.paginate import Paginator
 
 from .getS3FolderPrefix import get_s3_folder_prefix
 
-# imageList is a str[], imageGroupId: str
-VolInfo = collections.namedtuple('VolInfo', ['imageList', 'imageGroupID'])
+# image_list is a str[], imageGroupId: str
+VolInfo = collections.namedtuple('VolInfo', ['image_list', 'imageGroupID'])
 
 #
 # Super magic constant.

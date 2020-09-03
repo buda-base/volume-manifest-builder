@@ -10,7 +10,7 @@ class ImageGroupResolver(object):
         self._container = container
         self._image_classifier = image_classifier
 
-    def get_image_group_path(self, workRid: str, image_group_name: str) -> Path:
+    def full_path(self, workRid: str, image_group_name: str) -> Path:
         """
         Fully qualifies a RID and a Path
         :param workRid:
