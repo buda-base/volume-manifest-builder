@@ -45,7 +45,7 @@ class AOLogger:
         self.app_name = app_name
         now: datetime = datetime.now()
 
-        instance_id = f"{now.year}-{now.month}-{now.day}_{now.hour}_{now.minute}_{getpid()}"
+        instance_id = f"{now.year}-{now.month:02}-{now.day:02}_{now.hour:02}_{now.minute:02}_{getpid()}.{app_name}.log"
 
         log_file_path: Path = Path(log_file_root, instance_id)
         if not os.access(log_file_root, os.W_OK):
@@ -69,7 +69,7 @@ class AOLogger:
         # # This should be the parent of all loggers
         # logging.getLogger('').addHandler(main_handler)
 
-        for quiet_logger in ['boto', 'botocore', 'boto3', 'requests', 'urllib3', 'request', 's3transfer']:
+        for quiet_logger in ['boto', 'botocore', 'boto3', 'requests', 'urllib3', 'request', 's3transfer', 'PIL']:
             ql = logging.getLogger(quiet_logger)
             ql.setLevel(logging.CRITICAL)
             ql.propagate = True

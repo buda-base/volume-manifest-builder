@@ -1,6 +1,8 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
+    <inspection_tool class="DuplicatedInspection" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="InstalledPackageInspection" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PyPep8NamingInspection" enabled="true" level="TYPO" enabled_by_default="true">
       <option name="ignoredErrors">
         <list>
@@ -30,14 +32,17 @@
           <option value="object.*" />
           <option value="object.sourceFile" />
           <option value="v_m_t.manifestforwork.arg_namespace" />
+          <option value="localManifestForWork.VMBArgs.*" />
         </list>
       </option>
     </inspection_tool>
+    <inspection_tool class="ReferenceExistsInspection" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="SpellCheckingInspection" enabled="true" level="TYPO" enabled_by_default="true">
       <option name="processCode" value="false" />
       <option name="processLiterals" value="true" />
       <option name="processComments" value="false" />
     </inspection_tool>
+    <inspection_tool class="UnusedInspection" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnusedProperty" enabled="true" level="INFORMATION" enabled_by_default="true" />
     <inspection_tool class="WeakerAccess" enabled="true" level="INFORMATION" enabled_by_default="true">
       <option name="SUGGEST_PACKAGE_LOCAL_FOR_MEMBERS" value="true" />
