@@ -1,10 +1,16 @@
 import argparse
 import io
+from argparse import ArgumentParser
+from typing import Tuple, Any
 
+import boto3
+# import botocore (?needed?)
+from ImageRepository.ImageRepositoryFactory import ImageRepositoryFactory
 from S3WorkFileManager import S3WorkFileManager
 from boto.s3.bucket import Bucket
 from AOLogger import AOLogger
-from ImageGroupResolver import ImageGroupResolver
+from ImageRepository.ImageGroupResolver import ImageGroupResolver
+from ImageRepository import *
 from PIL import Image
 
 # for writing and GetVolumeInfos
@@ -12,8 +18,6 @@ S3_DEST_BUCKET: str = "archive.tbrc.org"
 
 # jimk Toggle legacy and new sources
 BUDA_IMAGE_GROUP = True
-
-# for manifestFromS3 and S3WorkFileManager
 
 S3_MANIFEST_WORK_LIST_BUCKET: str = "manifest.bdrc.org"
 LOG_FILE_ROOT: str = "/var/log/VolumeManifestTool"
@@ -24,8 +28,8 @@ done_prefix: str = "processing/done/"
 s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUCKET, todo_prefix, processing_prefix,
                                                        done_prefix)
 
-shell_logger: AOLogger = None
-IG_resolver: ImageGroupResolver = None
+shell_logger: AOLogger
+IG_resolver: ImageGroupResolver
 
 
 def fillDataWithBlobImage(blob, data):
@@ -67,8 +71,8 @@ def getVolumeInfos(workRid: str, botoClient: object, bucket: Bucket) -> []:
     :type bucket: boto.Bucket
     :return: VolList[imagegroup1..imagegroupn]
     """
-    from VolumeInfoBuda import VolumeInfoBUDA
-    from VolumeInfoeXist import VolumeInfoeXist
+    from VolumeInfo.VolumeInfoBuda import VolumeInfoBUDA
+    from VolumeInfo.VolumeInfoeXist import VolumeInfoeXist
 
     vol_infos: [] = []
     if BUDA_IMAGE_GROUP:
@@ -80,24 +84,16 @@ def getVolumeInfos(workRid: str, botoClient: object, bucket: Bucket) -> []:
     return vol_infos
 
 
-def report_error(csvwriter, csvline):
+def parse_args(arg_namespace: object) -> object:
     """
-   write the error in a synchronous way
-   """
-    global csvlock
-    csvlock.acquire()
-    csvwriter.writerow(csvline)
-    csvlock.release()
-
-
-def parse_args(arg_namespace: object) -> None:
-    """
-    :rtype: object
+    :rtype: object VMBArg with members
     :param arg_namespace. VMBArgs class which holds arg values
     """
 
     _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
                                       usage="%(prog)s sourcefile.")
+    child_parsers = _parser.add_subparsers(title='File System Parser', description="Handles file system options",
+                                           dest="io_channels")
 
     _parser.add_argument("-d",
                          "--debugLevel",
@@ -120,21 +116,26 @@ def parse_args(arg_namespace: object) -> None:
                          action='store_true',
                          help="Check image internals (slower)")
 
-    from DBAppParser import mustExistDirectory
-    _parser.add_argument("-s",
-                         '--source-container',
-                         dest='source_container',
-                         action='store',
-                         type=mustExistDirectory,
-                         required=True,
-                         help="container for all workRID archives")
+    # No special args for s3, they're baked in. See prolog()
+    child_parsers.add_parser("s3")
 
-    _parser.add_argument("-i",
-                         '--image-folder-name',
-                         dest='image_folder_name',
-                         action='store',
-                         default="images",
-                         help="name of parent folder of images")
+    fs_parser: ArgumentParser = child_parsers.add_parser("fs")
+
+    from DBAppParser import mustExistDirectory
+    fs_parser.add_argument("-s",
+                           '--source-container',
+                           dest='source_container',
+                           action='store',
+                           type=mustExistDirectory,
+                           required=True,
+                           help="container for all workRID archives")
+
+    fs_parser.add_argument("-i",
+                           '--image-folder-name',
+                           dest='image_folder_name',
+                           action='store',
+                           default="images",
+                           help="name of parent folder of image files")
 
     #
     # sourceFile only used in manifestForList
@@ -204,6 +205,9 @@ def exception_handler(exception_type, exception, traceback):
     """
     All your trace are belong to us!
     your format
+    :param exception_type: system provided
+    :param exception:  system provided
+    :type traceback: object
     """
     error_string: str = f"{exception_type.__name__}: {exception}"
 
@@ -220,7 +224,11 @@ class VMBArgs:
     pass
 
 
-def prolog() -> VMBArgs:
+def prolog() -> Tuple[VMBArgs, Any]:
+    """
+    Program setup. Exception, logging, and repository
+    :return:
+    """
     # Skip noisy exceptions
     import sys
     from pathlib import Path
@@ -229,8 +237,21 @@ def prolog() -> VMBArgs:
     sys.excepthook = exception_handler
 
     args = VMBArgs()
-    parse_args(args)
     shell_logger = AOLogger('local_v_m_b', args.log_level, Path(args.log_parent))
-    IG_resolver = ImageGroupResolver(args.source_container, args.image_folder_name)
+    shell_logger.hush = True
+    parse_args(args)
 
-    return args
+    image_repository: ImageRepositoryBase = None
+    if args.s3:
+        session = boto3.session.Session(region_name='us-east-1')
+        client = session.client('s3')
+        dest_bucket = session.resource('s3').Bucket(S3_DEST_BUCKET)
+        image_repository = ImageRepositoryFactory.repository(args.s3, client=client, bucket=dest_bucket)
+    else:
+        image_repository = ImageRepositoryFactory.repository(args.fs, source_container=args.source_container,
+                                                             image_file_name=args.image_file_name)
+        IG_resolver = ImageGroupResolver(args.source_container, args.image_folder_name)
+
+    shell_logger.hush = False
+
+    return args, image_repository

@@ -1,6 +1,6 @@
 from urllib import request
 
-from v_m_b.VolumeInfoBase import VolumeInfoBase, VolInfo
+from VolumeInfo.VolumeInfoBase import VolumeInfoBase, VolInfo
 
 
 def expand_image_list(image_list_str: str) -> []:

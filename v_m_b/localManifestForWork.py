@@ -1,28 +1,12 @@
 #!/usr/bin/env python3
-import argparse
-import asyncio
-import gzip
-import io
-import json
-import logging
 import sys
 
 import aiofiles
 
 import time
 from pathlib import Path
-from tempfile import NamedTemporaryFile
-from threading import Lock
-from typing import TextIO
 
-import boto3
-import botocore
-from PIL import Image
 from botocore.exceptions import ClientError
-
-from AOLogger import AOLogger
-from ImageGroupResolver import ImageGroupResolver
-from S3WorkFileManager import S3WorkFileManager
 
 from manifestCommons import *
 
@@ -93,29 +77,29 @@ def manifestForList(args: VMBArgs):
                 shell_logger.error(f"{work_rid} failed to build manifest: {type(inst)} {inst.args} {inst} ")
 
 
-def manifestForWork(args: VMBArgs, workRID):
+def manifestForWork(args: VMBArgs, work_Rid: str):
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     """
 
     global shell_logger
 
-    vol_infos: [] = getVolumeInfos(workRID)
+    vol_infos: [] = getVolumeInfos(work_Rid)
     if len(vol_infos) == 0:
-        shell_logger.error(f"Could not find image groups for {workRID}")
+        shell_logger.error(f"Could not find image groups for {work_Rid}")
         return
 
     for vi in vol_infos:
 
-        complete_path: Path = IG_resolver.full_path(workRID, vi.imageGroupID)
         _tick = time.monotonic()
-        mani_fest = manifestForVolume(complete_path, vi)
+        mani_fest = manifestForVolume(work_Rid, vi)
         _et = time.monotonic() - _tick
         print(f"Volume reading: {_et:05.3} ")
         shell_logger.debug(f"Volume reading: {_et:05.3} ")
         uploadManifest(mani_fest, args)
 
-def manifestForVolume(vol_path: Path, vi: object) ->[]:
+
+def manifestForVolume(work_Rid: str, vi: object) ->[]:
     """
     this function generates the manifest for an image group of a work (example: I0886 in W22084)
     :param vol_path: Path to images in a volume
@@ -125,12 +109,8 @@ def manifestForVolume(vol_path: Path, vi: object) ->[]:
     :returns: data for each image in one volume
     """
 
-    global shell_logger
-    if manifestExists(vol_path):
-        shell_logger.info(f"manifest exists: {vol_path}")
-
     # asyncio.run(generateManifest(vol_path, vi.image_list))
-    generateManifest_s(vol_path,vi.image_list)
+    generateManifest_s(complete_path,vi.image_list)
 
 
 async def generateManifest(ig_container: Path, image_list: []) -> []:

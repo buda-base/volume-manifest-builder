@@ -22,11 +22,6 @@ from s3customtransfer import S3CustomTransfer
 
 from manifestCommons import *
 
-
-
-
-
-
 csvlock: Lock = Lock()
 
 
@@ -39,15 +34,6 @@ csvlock: Lock = Lock()
 #  These are the entry points. See setup.py, which configures 'manifestfromS3' and 'manifestforwork:main' as console
 
 
-def manifestShell():
-    """
-    Prepares args for running
-    :return:
-    """
-    args = prolog()
-
-    manifestForList(args.source_file)
-
 
 def manifestForList(sourceFile: TextIO):
     """
@@ -59,42 +45,16 @@ def manifestForList(sourceFile: TextIO):
     if sourceFile is None:
         raise ValueError("Usage: manifestforwork sourceFile where sourceFile contains a list of work RIDs")
 
-    session = boto3.session.Session(region_name='us-east-1')
-    client = session.client('s3')
-    dest_bucket = session.resource('s3').Bucket(S3_DEST_BUCKET)
-    errors_file_name = "errors-" + os.path.basename(sourceFile.name) + ".csv"
-    with open(errors_file_name, 'w+', newline='') as csvf:
-        csvwriter = csv.writer(csvf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        csvwriter.writerow(
-            ["s3imageKey", "workRID", "imageGroupID", "size", "width", "height", "mode", "format", "palette",
-             "compression", "errors"])
-        with sourceFile as f:
-            for work_rid in f.readlines():
-                work_rid = work_rid.strip()
-                try:
-                    manifestForWork(client, dest_bucket, work_rid, csvwriter)
-                except Exception as inst:
-                    shell_logger.error(f"{work_rid} failed to build manifest {type(inst)} {inst.args} {inst} ")
+
+    with sourceFile as f:
+        for work_rid in f.readlines():
+            work_rid = work_rid.strip()
+            try:
+                manifestForWork(client, dest_bucket, work_rid)
+            except Exception as inst:
+                shell_logger.error(f"{work_rid} failed to build manifest {type(inst)} {inst.args} {inst} ")
 
 
-def manifestForWork(client: boto3.client, bucket: Bucket, workRID, csvwriter):
-    """
-    this function generates the manifests for each volume of a work RID (example W22084)
-    """
-
-    global shell_logger
-
-    vol_infos: [] = getVolumeInfos(workRID, client, bucket)
-    if len(vol_infos) == 0:
-        shell_logger.error(f"Could not find image groups for {workRID}")
-        return
-
-    for vi in vol_infos:
-        _tick = time.monotonic()
-        manifestForVolume(client, workRID, vi, csvwriter)
-        _et = time.monotonic() - _tick
-        print(f"Volume reading: {_et:05.3} ")
-        shell_logger.debug(f"Volume reading: {_et:05.3} ")
 
 
 
@@ -127,6 +87,8 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
     """
 
     global shell_logger
+    shell_logger.debug("uploading..pass")
+    return
 
     manifest_str = json.dumps(manifestObject)
     manifest_gzip = gzip_str(manifest_str)
@@ -141,88 +103,6 @@ def uploadManifest(bucket, s3folderPrefix, manifestObject):
     except ClientError:
         shell_logger.warn(f"Couldn't write json {key}")
 
-
-def manifestExists(client, s3folderPrefix):
-    """
-    make sure s3folderPrefix+"/dimensions.json" doesn't exist in S3
-    """
-    key = s3folderPrefix + 'dimensions.json'
-    try:
-        client.head_object(Bucket=S3_DEST_BUCKET, Key=key)
-        return True
-    except botocore.exceptions.ClientError as exc:
-        if exc.response['Error']['Code'] == '404':
-            return False
-        else:
-            raise
-
-
-def gets3blob(bucket, s3imageKey):
-    f = io.BytesIO()
-    try:
-        bucket.download_fileobj(s3imageKey, f)
-        return f
-    except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == '404':
-            return None
-        else:
-            raise
-
-
-class DoneCallback(object):
-    def __init__(self, filename, imgdata, csvwriter, s3imageKey, workRID, imageGroupID):
-        self._filename = filename
-        self._imgdata = imgdata
-        self._csvwriter = csvwriter
-        self._s3imageKey = s3imageKey
-        self._workRID = workRID
-        self._imageGroupID = imageGroupID
-
-    def __call__(self):
-        fillDataWithBlobImage(self._filename, self._imgdata, self._csvwriter, self._s3imageKey, self._workRID,
-                              self._imageGroupID)
-
-
-def fillData(transfer, s3imageKey, csvwriter, imgdata, workRID, imageGroupID):
-    """
-    Launch async transfer with callback
-
-    """
-    filename = io.BytesIO()
-    try:
-        transfer.download_file(S3_DEST_BUCKET, s3imageKey, filename,
-                               callback=DoneCallback(filename, imgdata, csvwriter, s3imageKey, workRID, imageGroupID))
-    except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == '404':
-            csvline = [s3imageKey, workRID, imageGroupID, "", "", "", "", "", "", "", "keydoesnotexist"]
-            report_error(csvwriter, csvline)
-        else:
-            raise
-
-
-def generateManifest(client, s3folderPrefix, imageList, csvwriter, workRID, imageGroupID):
-    """
-    this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
-    :param client:
-    :param s3folderPrefix:
-    :param imageList: list of image names
-    :param csvwriter:
-    :param workRID:
-    :param imageGroupID:
-    :return:
-    """
-    res = []
-    transfer = S3CustomTransfer(client)
-    #
-    # jkmod: moved expand_image_list into VolumeInfoBUDA class
-    for imageFileName in imageList:
-        s3imageKey: str = s3folderPrefix + imageFileName
-        imgdata = {"filename": imageFileName}
-        res.append(imgdata)
-        fillData(transfer, s3imageKey, csvwriter, imgdata, workRID, imageGroupID)
-
-    transfer.wait()
-    return res
 
 
 def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey, workRID, imageGroupID):
@@ -278,6 +158,6 @@ def fillDataWithBlobImage(blob, data, csvwriter, s3imageKey, workRID, imageGroup
 
 
 if __name__ == '__main__':
-    manifestFromS3()
+    manifestShell()
     # manifestFromList
     # manifestFor

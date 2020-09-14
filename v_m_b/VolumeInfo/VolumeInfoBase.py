@@ -7,7 +7,7 @@ from boto3 import client
 from botocore.exceptions import ClientError
 from botocore.paginate import Paginator
 
-from .getS3FolderPrefix import get_s3_folder_prefix
+from getS3FolderPrefix import get_s3_folder_prefix
 
 # image_list is a str[], imageGroupId: str
 VolInfo = collections.namedtuple('VolInfo', ['image_list', 'imageGroupID'])

@@ -2,7 +2,6 @@ import logging
 import os
 import warnings
 from pathlib import Path
-
 import boto3
 
 
@@ -33,6 +32,7 @@ class AOLogger:
         my_log = logging.get_logger(__name__)
         to emit
         <time> <__name__>-LEVEL: message
+        :type log_file_root: object
         :param log_level: string rep of python logging level
         :type log_level: str
         :return:
@@ -47,15 +47,18 @@ class AOLogger:
 
         instance_id = f"{now.year}-{now.month:02}-{now.day:02}_{now.hour:02}_{now.minute:02}_{getpid()}.{app_name}.log"
 
-        log_file_path: Path = Path(log_file_root, instance_id)
-        if not os.access(log_file_root, os.W_OK):
+        log_file_path: Path = Path(str(log_file_root), instance_id)
+        if not os.access(str(log_file_root), os.W_OK):
             raise NotADirectoryError(f"{log_file_root} is not  writable or does not exist")
 
-        main_handler = RotatingFileHandler(log_file_path, maxBytes=4096000, backupCount=100)
+        main_handler = RotatingFileHandler(str(log_file_path), maxBytes=4096000, backupCount=100)
 
         log_num_level: int = (getattr(logging, log_level.upper(), logging.INFO))
+        # noinspection PyArgumentList
         logging.basicConfig(format='%(asctime)s:%(name)s-%(levelname)s: %(message)s', level=log_num_level,
                             handlers=[main_handler])
+        # This gets a sublogger which should use the root logger above.
+        # submodule
         self.py_logger = logging.getLogger(app_name)
 
         # create formatter and add it to the handlers
@@ -91,13 +94,21 @@ class AOLogger:
         :return:
         """
 
-        if logging_level != logging.NOTSET and logging_level != logging.CRITICAL and logging_level != logging.ERROR and logging_level != logging.WARNING and logging_level != logging.INFO and logging_level != logging.DEBUG:
+        if logging_level != logging.NOTSET \
+                and logging_level != logging.CRITICAL \
+                and logging_level != logging.ERROR \
+                and logging_level != logging.WARNING \
+                and logging_level != logging.INFO \
+                and logging_level != logging.DEBUG:
             warnings.warn(f"Invalid logging {logging_level} given. Contact author")
             return
         self.py_logger.log(logging_level, message)
 
+        # jimk: volume-manifest-builder #37 hushing the SNS message
         if self.sns_arn:
-            if logging_level == logging.CRITICAL or logging_level == logging.ERROR and message != "KeyboardInterrupt":
+            if logging_level == logging.CRITICAL \
+                    or (logging_level == logging.ERROR and message != "KeyboardInterrupt") \
+                    and not self.hush:
                 try:
                     self.logging_sns_client.publish(TopicArn=self.sns_arn, Message=f'{message}',
                                                     Subject=f"{logging.getLevelName(logging_level)} in {self.app_name}",
@@ -122,3 +133,13 @@ class AOLogger:
 
     def exception(self, message: str):
         self.log(logging.CRITICAL, message)
+
+    _hush: bool = False
+
+    @property
+    def hush(self):
+        return self._hush
+
+    @hush.setter
+    def hush(self, value: bool):
+        self._hush = value
