@@ -120,24 +120,24 @@ async def generateManifest(ig_container: Path, image_list: []) -> []:
     :param image_list: list of image names
     :returns: list of  internal data for each file in image_list
     """
-
-    res = []
-
-    image_file_name: object
-    for image_file_name in image_list:
-        image_path: Path = Path(ig_container,image_file_name)
-        imgdata = {"filename": image_file_name}
-        res.append(imgdata)
-        # extracted from fillData
-        async with aiofiles.open(image_path, "rb") as image_file:
-            image_buffer = await image_file.read()
-            # image_buffer = io.BytesIO(image_file.read())
-            try:
-                fillDataWithBlobImage(image_buffer, imgdata)
-            except Exception as eek:
-                exc = sys.exc_info()
-                print(eek, exc[0])
-        # asyncio.run(fillData(image_path, imgdata))
+    #
+    # res = []
+    #
+    # image_file_name: object
+    # for image_file_name in image_list:
+    #     image_path: Path = Path(ig_container,image_file_name)
+    #     imgdata = {"filename": image_file_name}
+    #     res.append(imgdata)
+    #     # extracted from fillData
+    #     async with aiofiles.open(image_path, "rb") as image_file:
+    #         image_buffer = await image_file.read()
+    #         # image_buffer = io.BytesIO(image_file.read())
+    #         try:
+    #             fillDataWithBlobImage(image_buffer, imgdata)
+    #         except Exception as eek:
+    #             exc = sys.exc_info()
+    #             print(eek, exc[0])
+    #     # asyncio.run(fillData(image_path, imgdata))
     return res
 
 def generateManifest_s(ig_container: Path, image_list: []) -> []:

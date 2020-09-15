@@ -1,26 +1,12 @@
 import abc
-import collections
 import logging
-
-from boto.s3.bucket import Bucket
-from boto3 import client
-from botocore.exceptions import ClientError
-from botocore.paginate import Paginator
-
-from getS3FolderPrefix import get_s3_folder_prefix
-
-# image_list is a str[], imageGroupId: str
-VolInfo = collections.namedtuple('VolInfo', ['image_list', 'imageGroupID'])
+from ImageRepository.ImageRepositoryBase import ImageRepositoryBase
+from VolumeInfo.VolInfo import VolInfo
 
 #
 # Super magic constant.
 # See https://github.com/archive-ops/scripts/processing/sync2archive.sh
 #
-VMT_BUDABOM: str = 'fileList.json'
-VMT_BUDABOM_KEY = 'filename'
-VMT_DIM: str = 'dimensions.json'
-
-logger: logging = None
 
 
 class VolumeInfoBase(metaclass=abc.ABCMeta):
@@ -29,27 +15,20 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
     Passes request off to subclasses
     """
 
-    boto_client: client = None
+    logger: logging = None
 
-    s3_image_bucket: Bucket = None
-
-    # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html
-    boto_paginator: Paginator = None
-
-    def __init__(self, boto_client: client, bucket: Bucket):
+    def __init__(self, repo: ImageRepositoryBase):
         """
         :param boto_client: context for operations
         :type boto_client: boto3.client
         : param bucket: target container
         :type bucket: boto.s3.bucket.Bucket
         """
-        self.boto_client = boto_client
-        self.boto_paginator = self.boto_client.get_paginator('list_objects_v2')
-        self.s3_image_bucket = bucket
+        self._repo = repo
         self.logger = logging.getLogger(__name__)
 
     @abc.abstractmethod
-    def fetch(self, urlRequest) -> []:
+    def fetch(self, urlRequest) -> [VolInfo]:
         """
         Subclasses implement
         :param urlRequest:
@@ -57,74 +36,12 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         """
         pass
 
-    def read_bom_from_s3(self, bom_path: str) -> list:
-        """
-        Reads a json file and returns the values with the "filename" key as a list of strings
-        :param bom_path:  full s3 path to BOM
-        :return:
-        """
-        import boto3
-        import json
-
-        s3 = boto3.client('s3')
-        json_body: {} = {}
-
-        try:
-            obj = s3.get_object(Bucket=self.s3_image_bucket.name, Key=bom_path)
-            #
-            # Python 3 read() returns bytes which need decode
-            json_body = json.loads(obj['Body'].read().decode('utf - 8'))
-
-            self.logger.info("read bom from s3 object size %d json body size %d path %s",
-                             len(obj), len(json_body), bom_path)
-        except ClientError as ex:
-            errstr: str = f"ClientError Exception {ex.response['Error']['Code']} Message f{ex.response['Error']['Message']} " \
-                          f"on object {ex.response['Error']['Key']} for our BOMPath  {bom_path}  from bucket {self.s3_image_bucket.name}"
-
-            if ex.response['Error']['Code'] == 'NoSuchKey':
-                self.logger.warning(errstr)
-            else:
-                self.logger.error(errstr)
-                raise
-
-        return [x[VMT_BUDABOM_KEY] for x in json_body]
-
-    def get_image_names_from_S3(self, work_rid: str, image_group: str) -> []:
+    def getImageNames(self, work_rid: str, image_group: str, bom_name: str) -> []:
         """
         get names of the image files (actually, all the files in an image group, regardless
         :param work_rid: work name ex: W1FPl2251
         :param image_group: sub folder (e.g. I1CZ0085)
+        :param bom_name: name of container of file list
         :return: str[]  should contain ['I1CZ0085001.jpg','I1CZ0085002.jpg'...']
         """
-
-        image_list = []
-        full_image_group_path: str = ""
-        try:
-            full_image_group_path = get_s3_folder_prefix(work_rid, image_group)
-            bom: [] = self.read_bom_from_s3(full_image_group_path + VMT_BUDABOM)
-
-            if len(bom) > 0:
-                self.logger.debug(
-                    f"fetched BOM from BUDA BOM: {len(bom)} entries path:{full_image_group_path + VMT_BUDABOM}:")
-                return bom
-
-            # jimk: Get the
-            page_iterator = self.boto_paginator.paginate(Bucket=self.s3_image_bucket.name, Prefix=full_image_group_path)
-
-            # #10 filter out image files
-            # filtered_iterator = page_iterator.search("Contents[?contains('Key','json') == `False`]")
-            # filtered_iterator = page_iterator.search("Contents.Key[?contains(@,'json') == `False`][]")
-            # filtered_iterator = page_iterator.search("[?contains(Contents.Key,'json') == `false`][]")
-            # page_iterator:
-            for page in page_iterator:
-                if "Contents" in page:
-                    image_list.extend([dat["Key"].replace(full_image_group_path, "") for dat in page["Contents"] if
-                                       '.json' not in dat["Key"]])
-
-            self.logger.debug(
-                f"fetched BOM from S3 list_objects: {len(image_list)} entries. path:{full_image_group_path}")
-        except Exception:
-            self.logger.warning(f"Could not populate BOM for {full_image_group_path + VMT_BUDABOM}")
-        finally:
-            pass
-        return image_list
+        return self._repo.getImageNames(work_rid, image_group, bom_name)

@@ -1,16 +1,17 @@
 import argparse
 import io
+import os
 from argparse import ArgumentParser
 from typing import Tuple, Any
 
 import boto3
 # import botocore (?needed?)
-from ImageRepository.ImageRepositoryFactory import ImageRepositoryFactory
+from ImageRepository import ImageRepositoryFactory
+from ImageRepository import ImageRepositoryBase
+
+
 from S3WorkFileManager import S3WorkFileManager
-from boto.s3.bucket import Bucket
 from AOLogger import AOLogger
-from ImageRepository.ImageGroupResolver import ImageGroupResolver
-from ImageRepository import *
 from PIL import Image
 
 # for writing and GetVolumeInfos
@@ -25,11 +26,15 @@ todo_prefix: str = "processing/todo/"
 processing_prefix: str = "processing/inprocess/"
 done_prefix: str = "processing/done/"
 
+VMT_BUDABOM: str = 'fileList.json'
+VMT_BUDABOM_KEY: str = 'filename'
+VMT_DIM: str = 'dimensions.json'
+
 s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUCKET, todo_prefix, processing_prefix,
                                                        done_prefix)
 
 shell_logger: AOLogger
-IG_resolver: ImageGroupResolver
+# IG_resolver: ImageGroupResolver
 
 
 def fillDataWithBlobImage(blob, data):
@@ -60,15 +65,14 @@ def fillDataWithBlobImage(blob, data):
         data["size"] = size
 
 
-def getVolumeInfos(workRid: str, botoClient: object, bucket: Bucket) -> []:
+def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
     """
     Tries data sources for image group info. If BUDA_IMAGE_GROUP global is set, prefers
     BUDA source, tries eXist on BUDA fail.
+    :param image_repo: Image repository object
+    :type image_repo: ImageRepositoryBase
     :type workRid: str
     :param workRid: Work identifier
-    :param botoClient: handle to AWS
-    :param bucket: storage parent
-    :type bucket: boto.Bucket
     :return: VolList[imagegroup1..imagegroupn]
     """
     from VolumeInfo.VolumeInfoBuda import VolumeInfoBUDA
@@ -76,24 +80,36 @@ def getVolumeInfos(workRid: str, botoClient: object, bucket: Bucket) -> []:
 
     vol_infos: [] = []
     if BUDA_IMAGE_GROUP:
-        vol_infos = (VolumeInfoBUDA(botoClient, bucket)).fetch(workRid)
+        vol_infos = (VolumeInfoBUDA(image_repo)).fetch(workRid)
 
     if len(vol_infos) == 0:
-        vol_infos = (VolumeInfoeXist(botoClient, bucket)).fetch(workRid)
+        vol_infos = (VolumeInfoeXist(image_repo)).fetch(workRid)
 
     return vol_infos
 
+def mustExistDirectory(path: str):
+    """
+    Argparse type specifying a string which represents
+    an existing file path
+    :param path:
+    :return:
+    """
+    realpath: str = os.path.expanduser(path)
+    if not os.path.isdir(realpath) or not os.path.exists(realpath):
+        raise argparse.ArgumentTypeError(f"{realpath} not found")
+    else:
+        return realpath
 
-def parse_args(arg_namespace: object) -> object:
+def parse_args(arg_namespace: object):
     """
     :rtype: object VMBArg with members
     :param arg_namespace. VMBArgs class which holds arg values
     """
 
     _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
-                                      usage="%(prog)s sourcefile.")
+                                      usage="%(prog)s sourcefile")
     child_parsers = _parser.add_subparsers(title='File System Parser', description="Handles file system options",
-                                           dest="io_channels")
+                                           dest="io_channel")
 
     _parser.add_argument("-d",
                          "--debugLevel",
@@ -121,7 +137,8 @@ def parse_args(arg_namespace: object) -> object:
 
     fs_parser: ArgumentParser = child_parsers.add_parser("fs")
 
-    from DBAppParser import mustExistDirectory
+    #
+    # sourceFile only used in manifestForList
     fs_parser.add_argument("-s",
                            '--source-container',
                            dest='source_container',
@@ -137,11 +154,8 @@ def parse_args(arg_namespace: object) -> object:
                            default="images",
                            help="name of parent folder of image files")
 
-    #
-    # sourceFile only used in manifestForList
-    _parser.add_argument('work_list_file',
+    _parser.add_argument('-w', '--workList', dest='work_list_file',
                          help="File containing one RID per line.",
-                         nargs='?',
                          type=argparse.FileType('r'))
 
     _parser.add_argument('-p',
@@ -237,21 +251,22 @@ def prolog() -> Tuple[VMBArgs, Any]:
     sys.excepthook = exception_handler
 
     args = VMBArgs()
+    parse_args(args)
     shell_logger = AOLogger('local_v_m_b', args.log_level, Path(args.log_parent))
     shell_logger.hush = True
-    parse_args(args)
 
     image_repository: ImageRepositoryBase = None
-    if args.s3:
+    channel = str(args.io_channel).lower()
+    if channel == 's3':
         session = boto3.session.Session(region_name='us-east-1')
         client = session.client('s3')
         dest_bucket = session.resource('s3').Bucket(S3_DEST_BUCKET)
-        image_repository = ImageRepositoryFactory.repository(args.s3, client=client, bucket=dest_bucket)
+        image_repository = ImageRepositoryFactory.repository(channel, client=client, bucket=dest_bucket)
     else:
-        image_repository = ImageRepositoryFactory.repository(args.fs, source_container=args.source_container,
+        image_repository = ImageRepositoryFactory.repository(channel, source_container=args.source_container,
                                                              image_file_name=args.image_file_name)
-        IG_resolver = ImageGroupResolver(args.source_container, args.image_folder_name)
+#        IG_resolver = ImageGroupResolver(args.source_container, args.image_folder_name)
 
     shell_logger.hush = False
 
-    return args, image_repository
+    return args, image_repository, shell_logger

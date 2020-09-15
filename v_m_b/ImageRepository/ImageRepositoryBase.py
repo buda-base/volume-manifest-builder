@@ -3,18 +3,19 @@ Base class for image repositories
 """
 
 from abc import ABCMeta, abstractmethod
-
-from VolumeInfo.VolumeInfoBase import VolInfo
 import logging
+
+from VolumeInfo.VolInfo import VolInfo
 
 
 class ImageRepositoryBase(metaclass=ABCMeta):
 
     @abstractmethod
-    def manifest_exists(self, *args) -> bool:
+    def manifest_exists(self, work_Rid: str, image_group_name: str) -> bool:
         """
         Test if a manifest exists
-        :param args: implementation dependent
+        :param work_Rid: work identifier
+        :param image_group_name: which image group (volume)
         :return: true if the args point to a path containing a 'dimensions.json' object
         """
         pass
@@ -24,14 +25,26 @@ class ImageRepositoryBase(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def generate_manifest(self, *args):
+    def generateManifest(self, work_Rid: str, vol_infos: VolInfo) -> []:
+        """
+        Generates the manifest for one image group. The manifest contains entries for each image.
+        See manifestCommons.fillBlobDataWithImage
+        :param work_Rid: Work name
+        :type work_Rid: str
+        :param vol_infos: data structure of volumes
+        :type vol_infos: VolInfo
+        :return: manifest as list of dictionaries
+        """
         pass
 
     @abstractmethod
-    def get_bom(self):
+    def getImageNames(self, work_rid: str, image_group: str, bom_name: str) -> []:
         """
-        Get the bill of materials for the image group - an object named 'fileList.json'
-        :return:
+        get names of the image files (actually, all the files in an image group, regardless
+        :param work_rid: work name ex: W1FPl2251
+        :param image_group: sub folder (e.g. I1CZ0085)
+        :param bom_name: name of container of file list
+        :return: str[]  should contain ['I1CZ0085001.jpg','I1CZ0085002.jpg'...']
         """
         pass
 
@@ -40,18 +53,16 @@ class ImageRepositoryBase(metaclass=ABCMeta):
     def repo_log(self) -> object:
         return self._log
 
-    @property
-    def BOM(self) -> str:
-        return self._bom
-
-    @BOM.setter
-    def BOM(self, value: str):
-        self._bom = value
-
-    def __init__(self, bom: str) -> object:
+    def __init__(self, bom: str):
         """
-        :param bom: key to bill of materials
-        :type bom: str
+        :param
+        bom: key
+        to
+        bill
+        of
+        materials
+        :type
+        bom: str
         """
         self._bom = bom
         self._log = logging.getLogger(__name__)
