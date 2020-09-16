@@ -151,6 +151,20 @@ class S3ImageRepository(ImageRepositoryBase):
 
         return [x[Common.VMT_BUDABOM_JSON_KEY] for x in json_body]
 
+    def uploadManifest(self, work_rid: str, image_group: str, bom_name: str, manifest_zip: bytes):
+        """
+         - upload on s3 with the right metadata:
+          - ContentType='application/json'
+          - ContentEncoding='gzip'
+          - key: s3folderPrefix+"dimensions.json" (making sure there is a /)
+        :param work_rid:
+        :param image_group:
+        :param bom_name:
+        :param manifest_zip:
+        :return:
+        """
+
+
 
 class DoneCallback(object):
     def __init__(self, buffer, imgdata):

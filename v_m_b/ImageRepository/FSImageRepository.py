@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from pathlib import Path, PurePath
@@ -7,7 +8,7 @@ import aiofiles
 from ImageRepository.ImageRepositoryBase import ImageRepositoryBase
 from VolumeInfo.VolInfo import VolInfo
 from .ImageGroupResolver import ImageGroupResolver
-from v_m_b.manifestCommons import fillDataWithBlobImage
+from v_m_b.manifestCommons import fillDataWithBlobImage, VMT_BUDABOM_JSON_KEY
 
 
 class FSImageRepository(ImageRepositoryBase):
@@ -29,7 +30,9 @@ class FSImageRepository(ImageRepositoryBase):
             self.repo_log.info(f"manifest exists for work{work_Rid} image group {vol_info.imageGroupID}")
         import asyncio
         full_path: Path = self._IGResolver.full_path(work_Rid, vol_info.imageGroupID)
-        asyncio.run(generateManifest_a(full_path, vol_info.image_list))
+        manifest = asyncio.run(generateManifest_a(full_path, vol_info.image_list))
+        # generateManifest_s(full_path, vol_info.image_list)
+        return manifest
 
     def get_bom(self):
         pass
@@ -46,18 +49,42 @@ class FSImageRepository(ImageRepositoryBase):
         self._IGResolver = ImageGroupResolver(source_root, images_name)
 
     def getImageNames(self, work_rid: str, image_group: str, bom_name: str) -> []:
+        """
+        File system implementation
+        :param work_rid: locator
+        :param image_group: locator
+        :param bom_name: file name of BOM
+        :return: list of images in an image group, either from the BOM or by listing all the non json files in a folder
+        """
 
-        # try reading the bom first
-        bom_home = Path(self._IGResolver.full_path(work_rid, image_group))
+        bom_home = self._IGResolver.full_path(work_rid, image_group)
         bom_path = Path(bom_home, bom_name)
 
+        image_list: []
+
+        # try reading the bom first
         if bom_path.exists():
-            with str(bom_path) as f:
-                image_list = [i for i in f.readlines()]
-            if len(image_list) > 0:
-                return image_list
+            with open(bom_path, "rb") as f:
+                json_body = json.loads(f.read())
+                image_list = [x[VMT_BUDABOM_JSON_KEY] for x in json_body]
         else:
-            return [f for f in os.listdir('.') if os.path.isfile(f) and not str(f).lower().endswith('json')]
+            if os.path.exists(bom_home):
+                image_list = [f for f in os.listdir(bom_home) if os.path.isfile(Path(bom_home, f))
+                              and not str(f).lower().endswith('json')]
+        return image_list
+
+    def uploadManifest(self, work_rid: str, image_group: str, bom_name: str, manifest_zip: bytes):
+        """
+        FS implemenation
+        :param work_rid:
+        :param image_group:
+        :param bom_name: output object name
+        :param manifest_zip:
+        :return:
+        """
+        bom_path = Path(self._IGResolver.full_path(work_rid, image_group), bom_name)
+        with open(bom_path, "wb") as upl:
+            upl.write(manifest_zip)
 
 
 # downloading region
@@ -69,7 +96,7 @@ async def generateManifest_a(ig_container: PurePath, image_list: []) -> []:
     :returns: list of  internal data for each file in image_list
     """
 
-    res = []
+    res: [] = []
 
     image_file_name: str
     for image_file_name in image_list:
@@ -79,13 +106,7 @@ async def generateManifest_a(ig_container: PurePath, image_list: []) -> []:
         # extracted from fillData
         async with aiofiles.open(image_path, "rb") as image_file:
             image_buffer = await image_file.read()
-            # image_buffer = io.BytesIO(image_file.read())
-            try:
-                fillDataWithBlobImage(image_buffer, imgdata)
-            except Exception as eek:
-                exc = sys.exc_info()
-                print(eek, exc[0])
-        # asyncio.run(fillData(image_path, imgdata))
+            fillDataWithBlobImage(image_buffer, imgdata)
     return res
 
 

@@ -20,9 +20,6 @@ class ImageRepositoryBase(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
-    def upload_manifest(self, *args):
-        pass
 
     @abstractmethod
     def generateManifest(self, work_Rid: str, vol_infos: VolInfo) -> []:
@@ -36,6 +33,18 @@ class ImageRepositoryBase(metaclass=ABCMeta):
         :return: manifest as list of dictionaries
         """
         pass
+
+    @abstractmethod
+    def uploadManifest(self, work_rid: str, image_group: str, bom_name: str,  manifest_zip: bytes):
+        """
+        Uploads a zip string of a manifest object
+        :param work_rid: locator
+        :param image_group: locator
+        :param bom_name: filename of target
+        :param manifest_zip: payload
+        :type manifest_zip: bytes
+        :return:
+        """
 
     @abstractmethod
     def getImageNames(self, work_rid: str, image_group: str, bom_name: str) -> []:
