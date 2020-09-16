@@ -1,13 +1,14 @@
 from .S3ImageRepository import S3ImageRepository
 from .FSImageRepository import FSImageRepository
 
+
 class ImageRepositoryFactory(object):
     """
     Constructs a ImageRepositoryBase object
     """
 
-    @classmethod
-    def repository(cls, source: str, bom_key: str,   **kwargs):
+    # noinspection PyTypeChecker
+    def repository(self, source: str, bom_key: str, **kwargs):
         """
         Construct a repository for the desired channel: s3 or file system
         See v_m_b.manifestCommons.prolog for calling sequence
@@ -27,5 +28,5 @@ class ImageRepositoryFactory(object):
             return S3ImageRepository(bom_key, client=kwargs['client'], dest_bucket=kwargs['dest_bucket'])
 
         if source.lower() == "fs":
-            return FSImageRepository(bom_key, source_root=kwargs['source_container'], images_name=kwargs['image_classifier'])
-
+            return FSImageRepository(bom_key, source_root=kwargs['source_container'],
+                                     images_name=kwargs['image_classifier'])

@@ -149,7 +149,7 @@ class S3ImageRepository(ImageRepositoryBase):
                 self.repo_log.error(errstr)
                 raise
 
-        return [x[Common.VMT_BUDABOM_KEY] for x in json_body]
+        return [x[Common.VMT_BUDABOM_JSON_KEY] for x in json_body]
 
 
 class DoneCallback(object):

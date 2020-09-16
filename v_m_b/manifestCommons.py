@@ -2,13 +2,11 @@ import argparse
 import io
 import os
 from argparse import ArgumentParser
-from typing import Tuple, Any
-
+from typing import Tuple
 import boto3
 # import botocore (?needed?)
 from ImageRepository import ImageRepositoryFactory
 from ImageRepository import ImageRepositoryBase
-
 
 from S3WorkFileManager import S3WorkFileManager
 from AOLogger import AOLogger
@@ -27,7 +25,7 @@ processing_prefix: str = "processing/inprocess/"
 done_prefix: str = "processing/done/"
 
 VMT_BUDABOM: str = 'fileList.json'
-VMT_BUDABOM_KEY: str = 'filename'
+VMT_BUDABOM_JSON_KEY: str = 'filename'
 VMT_DIM: str = 'dimensions.json'
 
 s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUCKET, todo_prefix, processing_prefix,
@@ -87,6 +85,7 @@ def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
 
     return vol_infos
 
+
 def mustExistDirectory(path: str):
     """
     Argparse type specifying a string which represents
@@ -99,6 +98,7 @@ def mustExistDirectory(path: str):
         raise argparse.ArgumentTypeError(f"{realpath} not found")
     else:
         return realpath
+
 
 def parse_args(arg_namespace: object):
     """
@@ -223,7 +223,7 @@ def exception_handler(exception_type, exception, traceback):
     :param exception:  system provided
     :type traceback: object
     """
-    error_string: str = f"{exception_type.__name__}: {exception}"
+    error_string: str = f"{exception_type.__name__}: {exception}\ntraceback:\n\t{traceback.format_exc(limit=3)}"
 
     if shell_logger is None:
         print(error_string)
@@ -238,7 +238,7 @@ class VMBArgs:
     pass
 
 
-def prolog() -> Tuple[VMBArgs, Any]:
+def prolog() -> Tuple[VMBArgs, ImageRepositoryBase.ImageRepositoryBase, AOLogger]:
     """
     Program setup. Exception, logging, and repository
     :return:
@@ -261,10 +261,10 @@ def prolog() -> Tuple[VMBArgs, Any]:
         session = boto3.session.Session(region_name='us-east-1')
         client = session.client('s3')
         dest_bucket = session.resource('s3').Bucket(S3_DEST_BUCKET)
-        image_repository = ImageRepositoryFactory.repository(channel, client=client, bucket=dest_bucket)
+        image_repository = ImageRepositoryFactory.ImageRepositoryFactory().repository(channel, VMT_BUDABOM, client=client, bucket=dest_bucket)
     else:
-        image_repository = ImageRepositoryFactory.repository(channel, source_container=args.source_container,
-                                                             image_file_name=args.image_file_name)
+        image_repository = ImageRepositoryFactory.ImageRepositoryFactory().repository(channel, VMT_BUDABOM, source_container=args.source_container,
+                                                             image_classifier=args.image_folder_name)
 #        IG_resolver = ImageGroupResolver(args.source_container, args.image_folder_name)
 
     shell_logger.hush = False

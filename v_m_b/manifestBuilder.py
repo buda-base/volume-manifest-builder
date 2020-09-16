@@ -20,10 +20,10 @@ def manifestShell():
     global image_repo, shell_logger
     args, image_repo, shell_logger = prolog()
 
-    manifestForList(args.source_file)
+    manifestForList(args.source_container)
 
 
-def manifestForList(sourceFile: TextIO):
+def manifestForList(sourceFile: str):
     """
     reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)

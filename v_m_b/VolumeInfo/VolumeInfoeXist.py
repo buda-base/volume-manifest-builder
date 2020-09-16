@@ -6,7 +6,7 @@ from urllib import request
 from ImageRepository import ImageRepositoryBase
 from VolumeInfo.VolumeInfoBase import VolumeInfoBase
 from VolumeInfo.VolInfo import VolInfo
-from manifestCommons import VMT_BUDABOM_KEY
+from manifestCommons import VMT_BUDABOM_JSON_KEY
 
 
 class VolumeInfoeXist(VolumeInfoBase):
@@ -68,7 +68,7 @@ class VolumeInfoeXist(VolumeInfoBase):
         """
         vi = []
         for ig in image_groups:
-            vol_infos = self.getImageNames(work_rid, ig, VMT_BUDABOM_KEY)
+            vol_infos = self.getImageNames(work_rid, ig, VMT_BUDABOM_JSON_KEY)
             vi.append(VolInfo(vol_infos, ig))
 
         return vi
