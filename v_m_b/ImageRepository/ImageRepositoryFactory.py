@@ -1,5 +1,5 @@
-from .S3ImageRepository import S3ImageRepository
-from .FSImageRepository import FSImageRepository
+from v_m_b.ImageRepository.S3ImageRepository import S3ImageRepository
+from v_m_b.ImageRepository.FSImageRepository import FSImageRepository
 
 
 class ImageRepositoryFactory(object):

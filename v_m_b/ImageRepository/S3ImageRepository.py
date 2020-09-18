@@ -6,10 +6,10 @@ import botocore
 from boto.s3.bucket import Bucket
 
 # from manifestCommons import *
-import manifestCommons as Common
-from VolumeInfo.VolInfo import VolInfo
+import v_m_b.manifestCommons as Common
+from v_m_b.VolumeInfo.VolInfo import VolInfo
 from s3customtransfer import S3CustomTransfer
-from .ImageRepositoryBase import ImageRepositoryBase
+from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
 
 
 class S3ImageRepository(ImageRepositoryBase):

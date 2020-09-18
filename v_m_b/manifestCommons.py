@@ -4,12 +4,12 @@ import os
 from argparse import ArgumentParser
 from typing import Tuple
 import boto3
-# import botocore (?needed?)
-from ImageRepository import ImageRepositoryFactory
-from ImageRepository import ImageRepositoryBase
+import traceback
+from v_m_b.ImageRepository import ImageRepositoryFactory
+from v_m_b.ImageRepository import ImageRepositoryBase
 
-from S3WorkFileManager import S3WorkFileManager
-from AOLogger import AOLogger
+from v_m_b.S3WorkFileManager import S3WorkFileManager
+from v_m_b.AOLogger import AOLogger
 from PIL import Image
 
 # for writing and GetVolumeInfos
@@ -220,15 +220,22 @@ def gzip_str(string_):
     return bytes_obj
 
 
-def exception_handler(exception_type, exception, traceback):
+def exception_handler(exception_type, exception, tb: traceback):
     """
     All your trace are belong to us!
     your format
     :param exception_type: system provided
     :param exception:  system provided
-    :type traceback: object
+    :param tb: system provided traceback
+    :type tb: traceback
     """
-    error_string: str = f"{exception_type.__name__}: {exception}\ntraceback:\n\t{traceback.format_exc(limit=3)}"
+
+    global shell_logger
+    error_string: str = f"{exception_type.__name__}: {exception}\n"
+
+    if tb is not None:
+
+        error_string += f"\ntraceback:\n\t{ ''.join(traceback.format_tb(tb, limit=3))}"
 
     if shell_logger is None:
         print(error_string)
@@ -252,13 +259,13 @@ def prolog() -> Tuple[VMBArgs, ImageRepositoryBase.ImageRepositoryBase, AOLogger
     import sys
     from pathlib import Path
     global shell_logger
-    # sys.tracebacklimit = 0
-    sys.excepthook = exception_handler
 
     args = VMBArgs()
     parse_args(args)
     shell_logger = AOLogger('local_v_m_b', args.log_level, Path(args.log_parent))
+
     shell_logger.hush = True
+    sys.excepthook = exception_handler
 
     image_repository: ImageRepositoryBase = None
 

@@ -1,1 +1,1 @@
-__all__ = ['manifestforwork', 'getS3FolderPrefix', 's3customtransfer', 'manifestCommons']
+__all__ = ['manifestforwork', 's3customtransfer', 'manifestCommons', 'ImageRepository']

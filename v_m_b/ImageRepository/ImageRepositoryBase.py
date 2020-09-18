@@ -5,7 +5,7 @@ Base class for image repositories
 from abc import ABCMeta, abstractmethod
 import logging
 
-from VolumeInfo.VolInfo import VolInfo
+from v_m_b.VolumeInfo.VolInfo import VolInfo
 
 
 class ImageRepositoryBase(metaclass=ABCMeta):

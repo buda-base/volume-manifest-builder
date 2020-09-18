@@ -8,7 +8,7 @@ from pathlib import Path
 
 from botocore.exceptions import ClientError
 
-from manifestCommons import *
+from v_m_b.manifestCommons import *
 
 
 def manifestExists(image_folder: Path):

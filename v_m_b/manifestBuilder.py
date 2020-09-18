@@ -8,10 +8,10 @@ import time
 import traceback
 
 # from manifestCommons import prolog, getVolumeInfos, gzip_str, VMT_BUDABOM
-import manifestCommons as Common
-from AOLogger import AOLogger
-from ImageRepository.ImageRepositoryBase import ImageRepositoryBase
-from VolumeInfo.VolInfo import VolInfo
+import v_m_b.manifestCommons as Common
+from v_m_b.AOLogger import AOLogger
+from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
+from v_m_b.VolumeInfo.VolInfo import VolInfo
 
 image_repo: ImageRepositoryBase
 shell_logger: AOLogger
@@ -75,7 +75,8 @@ def manifestForList(sourceFile):
     global shell_logger
 
     if sourceFile is None:
-        raise ValueError("Usage: manifestforwork sourceFile where sourceFile contains a list of work RIDs")
+        raise ValueError("Usage: manifestforwork [ options ] sourceFile {fs | s3} [ command_options ]. "
+                         "See manifestforwork -h")
 
     with sourceFile as f:
         for work_rid in f.readlines():
@@ -131,7 +132,7 @@ def upload(work_Rid: str, image_group_name: str, manifest_object: object):
 
 
 if __name__ == '__main__':
-    # manifestShell()
-    manifestFromS3()
+    manifestShell()
+    # manifestFromS3()
     # manifestFromList
     # manifestFor

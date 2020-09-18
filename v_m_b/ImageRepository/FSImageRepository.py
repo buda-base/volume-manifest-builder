@@ -6,10 +6,10 @@ from pathlib import Path, PurePath
 
 import aiofiles
 
-from ImageRepository.ImageRepositoryBase import ImageRepositoryBase
-from VolumeInfo.VolInfo import VolInfo
-from .ImageGroupResolver import ImageGroupResolver
-from v_m_b.manifestCommons import fillDataWithBlobImage, VMT_BUDABOM_JSON_KEY
+from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
+from v_m_b.VolumeInfo.VolInfo import VolInfo
+from v_m_b.ImageRepository.ImageGroupResolver import ImageGroupResolver
+import v_m_b.manifestCommons as Common
 
 
 class FSImageRepository(ImageRepositoryBase):
@@ -61,7 +61,7 @@ class FSImageRepository(ImageRepositoryBase):
         if bom_path.exists():
             with open(bom_path, "rb") as f:
                 json_body = json.loads(f.read())
-                image_list = [x[VMT_BUDABOM_JSON_KEY] for x in json_body]
+                image_list = [x[Common.VMT_BUDABOM_JSON_KEY] for x in json_body]
         else:
             if bom_home.exists():
                 image_list = [f for f in os.listdir(str(bom_home)) if os.path.isfile(Path(bom_home, f))
@@ -122,7 +122,7 @@ async def generateManifest_a(ig_container: PurePath, image_list: []) -> []:
         async with aiofiles.open(image_path, "rb") as image_file:
             image_buffer: bytes = await image_file.read()
             bio: io.BytesIO = io.BytesIO(image_buffer)
-            fillDataWithBlobImage(bio, imgdata)
+            Common.fillDataWithBlobImage(bio, imgdata)
     return res
 
 

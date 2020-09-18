@@ -1,7 +1,7 @@
 import abc
 import logging
-from ImageRepository.ImageRepositoryBase import ImageRepositoryBase
-from VolumeInfo.VolInfo import VolInfo
+from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
+from v_m_b.VolumeInfo.VolInfo import VolInfo
 
 #
 # Super magic constant.

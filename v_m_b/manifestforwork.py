@@ -43,8 +43,8 @@ def manifestForList(sourceFile: TextIO):
     global shell_logger
 
     if sourceFile is None:
-        raise ValueError("Usage: manifestforwork sourceFile where sourceFile contains a list of work RIDs")
-
+        raise ValueError("Usage: manifestforwork [ options ] sourceFile {fs | s3} [ command_options ]. "
+                         "See manifestforwork -h")
 
     with sourceFile as f:
         for work_rid in f.readlines():
