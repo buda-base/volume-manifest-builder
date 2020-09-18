@@ -7,3 +7,4 @@ boto~=2.49.0
 bdrc_DBAppParser~=1.0.0
 aiofiles~=0.5.0
 lxml
+requests
