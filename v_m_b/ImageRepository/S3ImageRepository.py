@@ -1,3 +1,4 @@
+import hashlib
 import io
 
 import boto3
@@ -7,7 +8,6 @@ from boto.s3.bucket import Bucket
 # from manifestCommons import *
 import manifestCommons as Common
 from VolumeInfo.VolInfo import VolInfo
-from getS3FolderPrefix import get_s3_folder_prefix
 from s3customtransfer import S3CustomTransfer
 from .ImageRepositoryBase import ImageRepositoryBase
 
@@ -37,7 +37,7 @@ class S3ImageRepository(ImageRepositoryBase):
         """
         make sure s3folderPrefix+"/dimensions.json" doesn't exist in S3
         """
-        key = get_s3_folder_prefix(work_Rid, image_group_id) + 'dimensions.json'
+        key = self.getPathfromLocators(work_Rid, image_group_id) + 'dimensions.json'
         try:
             self._client.head_object(Bucket=Common.S3_DEST_BUCKET, Key=key)
             return True
@@ -64,7 +64,7 @@ class S3ImageRepository(ImageRepositoryBase):
     def generateManifest(self, work_Rid: str, vol_info: VolInfo) -> []:
         res = []
         transfer = S3CustomTransfer(self._client)
-        parent: str = get_s3_folder_prefix(work_Rid, vol_info.imageGroupID)
+        parent: str = self.getPathfromLocators(work_Rid, vol_info.imageGroupID)
         #
         # jkmod: moved expand_image_list into VolumeInfoBUDA class
         for imageFileName in vol_info.image_list:
@@ -81,10 +81,9 @@ class S3ImageRepository(ImageRepositoryBase):
         S3 implementation of get Image Names
 
         """
-
         image_list = []
 
-        full_image_group_path: str = get_s3_folder_prefix(work_Rid, image_group)
+        full_image_group_path: str = self.getPathfromLocators(work_Rid, image_group)
         bom_path: str = full_image_group_path + bom_name
         # noinspection PyBroadException
         try:
@@ -140,7 +139,7 @@ class S3ImageRepository(ImageRepositoryBase):
                                len(obj), len(json_body), bom_path)
         except ClientError as ex:
             errstr: str = f"ClientError Exception {ex.response['Error']['Code']} Message " \
-                    " f{ex.response['Error']['Message']} on object {ex.response['Error']['Key']} " \
+                          " f{ex.response['Error']['Message']} on object {ex.response['Error']['Key']} " \
                           "for our BOMPath  {bom_path}  from bucket {self._bucket.name}"
 
             if ex.response['Error']['Code'] == 'NoSuchKey':
@@ -163,7 +162,41 @@ class S3ImageRepository(ImageRepositoryBase):
         :param manifest_zip:
         :return:
         """
+        key = self.getPathfromLocators(work_rid, image_group) + bom_name
+        self.repo_log.debug("writing " + key)
+        from botocore.exceptions import ClientError
+        try:
+            self._client.put_object(Key=key, Body=manifest_zip,
+                                    Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'},
+                                    Bucket=self._bucket.name)
+            self.repo_log.info("wrote " + key)
+        except ClientError:
+            self.repo_log.warn(f"Couldn't write json {key}")
 
+    def getPathfromLocators(self, work_Rid: str, image_group_id: str) -> str:
+        """
+        :param work_Rid: Work resource id
+        :param image_group_id: image group - gets transformed
+        :returns:  the s3 prefix (~folder) in which the volume will be present.
+
+        inpire from https://github.com/buda-base/buda-iiif-presentation/blob/master/src/main/java/
+        io/bdrc/iiif/presentation/ImageInfoListService.java#L73
+        Example:
+           - work_Rid=W22084, image_group_id=I0886
+           - result = "Works/60/W22084/images/W22084-0886/
+        where:
+           - 60 is the first two characters of the md5 of the string W22084
+           - 0886 is:
+              * the image group ID without the initial "I" if the image group ID is in the form I\\d\\d\\d\\d
+              * these are some older cases
+              * or else the full image group ID (incuding the "I")
+
+        """
+        md5 = hashlib.md5(str.encode(work_Rid))
+        two = md5.hexdigest()[:2]
+
+        suffix = self.getImageGroup(image_group_id)
+        return f'Works/{two}/{work_Rid}/images/{work_Rid}-{suffix}/'
 
 
 class DoneCallback(object):

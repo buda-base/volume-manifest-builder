@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import sys
@@ -22,9 +23,6 @@ class FSImageRepository(ImageRepositoryBase):
         """
         return Path(self._IGResolver.full_path(work_Rid, image_group_id), 'dimensions.json').exists()
 
-    def upload_manifest(self, *args):
-        pass
-
     def generateManifest(self, work_Rid: str, vol_info: VolInfo) -> []:
         if self.manifest_exists(work_Rid, vol_info.imageGroupID):
             self.repo_log.info(f"manifest exists for work{work_Rid} image group {vol_info.imageGroupID}")
@@ -33,9 +31,6 @@ class FSImageRepository(ImageRepositoryBase):
         manifest = asyncio.run(generateManifest_a(full_path, vol_info.image_list))
         # generateManifest_s(full_path, vol_info.image_list)
         return manifest
-
-    def get_bom(self):
-        pass
 
     def __init__(self, bom_key: str, source_root: str, images_name: str):
         """
@@ -68,8 +63,8 @@ class FSImageRepository(ImageRepositoryBase):
                 json_body = json.loads(f.read())
                 image_list = [x[VMT_BUDABOM_JSON_KEY] for x in json_body]
         else:
-            if os.path.exists(bom_home):
-                image_list = [f for f in os.listdir(bom_home) if os.path.isfile(Path(bom_home, f))
+            if bom_home.exists():
+                image_list = [f for f in os.listdir(str(bom_home)) if os.path.isfile(Path(bom_home, f))
                               and not str(f).lower().endswith('json')]
         return image_list
 
@@ -85,6 +80,26 @@ class FSImageRepository(ImageRepositoryBase):
         bom_path = Path(self._IGResolver.full_path(work_rid, image_group), bom_name)
         with open(bom_path, "wb") as upl:
             upl.write(manifest_zip)
+
+    def getPathfromLocators(self, work_Rid: str, image_group_id: str) -> str:
+        """
+        :param work_Rid: Work resource id
+        :param image_group_id: image group - gets transformed
+        :returns:  the s3 prefix (~folder) in which the volume will be present.
+        gives the s3 prefix (~folder) in which the volume will be present.
+        inpire from https://github.com/buda-base/buda-iiif-presentation/blob/master/src/main/java/
+        io/bdrc/iiif/presentation/ImageInfoListService.java#L73
+        Example:
+           - workRID=W22084, imageGroupID=I0886
+           - result = "Works/60/W22084/images/W22084-0886/
+        where:
+           - 60 is the first two characters of the md5 of the string W22084
+           - 0886 is:
+              * the image group ID without the initial "I" if the image group ID is in the form I\\d\\d\\d\\d
+              * or else the full image group ID (incuding the "I")
+        """
+        suffix = self.getImageGroup(image_group_id)
+        return f"{self._container}/{work_Rid}/images/{work_Rid}-{suffix}"
 
 
 # downloading region
@@ -105,8 +120,9 @@ async def generateManifest_a(ig_container: PurePath, image_list: []) -> []:
         res.append(imgdata)
         # extracted from fillData
         async with aiofiles.open(image_path, "rb") as image_file:
-            image_buffer = await image_file.read()
-            fillDataWithBlobImage(image_buffer, imgdata)
+            image_buffer: bytes = await image_file.read()
+            bio: io.BytesIO = io.BytesIO(image_buffer)
+            fillDataWithBlobImage(bio, imgdata)
     return res
 
 
@@ -130,7 +146,7 @@ def generateManifest_s(ig_container: PurePath, image_list: []) -> []:
             image_buffer = image_file.read()
             # image_buffer = io.BytesIO(image_file.read())
             try:
-                fillDataWithBlobImage(image_buffer, imgdata)
+                fillDataWithBlobImage(io.BytesIO(image_buffer), imgdata)
             except Exception as eek:
                 exc = sys.exc_info()
                 print(eek, exc[0])

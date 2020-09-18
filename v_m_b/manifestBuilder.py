@@ -2,19 +2,55 @@
 shell for manifest builder
 """
 import json
+import logging
 import sys
 import time
 import traceback
-from typing import TextIO
 
-from AOLogger import AOLogger
-from VolumeInfo.VolInfo import VolInfo
 # from manifestCommons import prolog, getVolumeInfos, gzip_str, VMT_BUDABOM
 import manifestCommons as Common
+from AOLogger import AOLogger
 from ImageRepository.ImageRepositoryBase import ImageRepositoryBase
+from VolumeInfo.VolInfo import VolInfo
 
 image_repo: ImageRepositoryBase
 shell_logger: AOLogger
+
+
+def manifestFromS3():
+    """
+    Retrieves processes S3 objects in a bucket/key pair, where key is a prefix
+    :return:
+    """
+
+    global image_repo, shell_logger
+    args, image_repo, shell_logger = Common.prolog()
+
+    while True:
+        try:
+
+            import boto3
+            session = boto3.session.Session(region_name='us-east-1')
+            client = session.client('s3')
+            work_list = Common.buildWorkListFromS3(client)
+
+            for s3Path in work_list:
+                s3_full_path = f'{Common.processing_prefix}{s3Path}'
+
+                # jimk: need to pass a file-like object. NamedTemporaryFile returns an odd
+                # beast which you cant run readlines() on
+                from tempfile import NamedTemporaryFile
+                file_path = NamedTemporaryFile()
+                client.download_file(Common.S3_MANIFEST_WORK_LIST_BUCKET, s3_full_path, file_path.name)
+                manifestForList(open(file_path.name, "r"))
+                # manifestForList(file_path.name)
+
+            # don't need to rename work_list. Only when moving from src to done
+            if len(work_list) > 0:
+                Common.s3_work_manager.mark_done(work_list, work_list)
+        except Exception as eek:
+            shell_logger.log(logging.ERROR, str(eek))
+        time.sleep(abs(args.poll_interval))
 
 
 def manifestShell():
@@ -28,7 +64,7 @@ def manifestShell():
     manifestForList(args.work_list_file)
 
 
-def manifestForList(sourceFile: str):
+def manifestForList(sourceFile):
     """
     reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
@@ -69,7 +105,8 @@ def manifestForWork(workRID: str):
 
     for vi in vol_infos:
         _tick = time.monotonic()
-        upload(workRID, vi.imageGroupID, image_repo.generateManifest(workRID, vi))
+        manifest = image_repo.generateManifest(workRID, vi)
+        upload(workRID, vi.imageGroupID, manifest)
         _et = time.monotonic() - _tick
         print(f"Volume reading: {_et:05.3} ")
         shell_logger.debug(f"Volume reading: {_et:05.3} ")
@@ -94,6 +131,7 @@ def upload(work_Rid: str, image_group_name: str, manifest_object: object):
 
 
 if __name__ == '__main__':
-    manifestShell()
+    # manifestShell()
+    manifestFromS3()
     # manifestFromList
     # manifestFor

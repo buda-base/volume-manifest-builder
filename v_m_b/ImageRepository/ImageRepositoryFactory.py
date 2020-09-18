@@ -25,7 +25,7 @@ class ImageRepositoryFactory(object):
         """
         # S3 calling args.s3, client=client, bucket=dest_bucket
         if source.lower() == "s3":
-            return S3ImageRepository(bom_key, client=kwargs['client'], dest_bucket=kwargs['dest_bucket'])
+            return S3ImageRepository(bom_key, client=kwargs['client'], dest_bucket=kwargs['bucket'])
 
         if source.lower() == "fs":
             return FSImageRepository(bom_key, source_root=kwargs['source_container'],

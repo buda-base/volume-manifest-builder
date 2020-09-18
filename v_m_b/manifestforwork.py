@@ -55,9 +55,6 @@ def manifestForList(sourceFile: TextIO):
                 shell_logger.error(f"{work_rid} failed to build manifest {type(inst)} {inst.args} {inst} ")
 
 
-
-
-
 def manifestForVolume(client, workRID, vi, csvwriter):
     """
     this function generates the manifest for an image group of a work (example: I0886 in W22084)

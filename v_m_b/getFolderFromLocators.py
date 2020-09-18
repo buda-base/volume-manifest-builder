@@ -1,3 +1,6 @@
+"""
+Get folder prefixes for a variety of situations
+"""
 import hashlib
 
 # TODO

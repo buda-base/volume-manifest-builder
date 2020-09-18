@@ -30,12 +30,10 @@ VMT_DIM: str = 'dimensions.json'
 
 s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUCKET, todo_prefix, processing_prefix,
                                                        done_prefix)
-
 shell_logger: AOLogger
-# IG_resolver: ImageGroupResolver
 
 
-def fillDataWithBlobImage(blob, data):
+def fillDataWithBlobImage(blob: io.BytesIO, data):
     """
     This function populates a dict containing the height and width of the image
     the image is the binary blob returned by s3, an image library should be used to treat it
@@ -53,9 +51,11 @@ def fillDataWithBlobImage(blob, data):
     but they should be enough. Note that there's no 16 bit
     """
 
-    blob2 = io.BytesIO(blob)
-    size = blob2.getbuffer().nbytes
-    im = Image.open(blob2)
+    # blob2 = io.BytesIO(blob)
+    # size = blob2.getbuffer().nbytes
+    # im = Image.open(blob2)
+    size = blob.getbuffer().nbytes
+    im = Image.open(blob)
     data["width"] = im.width
     data["height"] = im.height
     # we indicate sizes of the more than 1MB
@@ -133,7 +133,13 @@ def parse_args(arg_namespace: object):
                          help="Check image internals (slower)")
 
     # No special args for s3, they're baked in. See prolog()
-    child_parsers.add_parser("s3")
+    s3_parser = child_parsers.add_parser("s3")
+    s3_parser.add_argument('-b',
+                           '--bucket',
+                           action='store',
+                           required=False,
+                           default=S3_DEST_BUCKET,
+                           help='Bucket - source and destination')
 
     fs_parser: ArgumentParser = child_parsers.add_parser("fs")
 
@@ -182,7 +188,6 @@ def buildWorkListFromS3(client: object) -> (str, []):
 
     page_iterator = client.get_paginator('list_objects_v2').paginate(Bucket=S3_MANIFEST_WORK_LIST_BUCKET,
                                                                      Prefix=todo_prefix)
-
     file_list = []
     # Get the object list from the first value
     for page in page_iterator:
@@ -246,7 +251,7 @@ def prolog() -> Tuple[VMBArgs, ImageRepositoryBase.ImageRepositoryBase, AOLogger
     # Skip noisy exceptions
     import sys
     from pathlib import Path
-    global shell_logger, IG_resolver
+    global shell_logger
     # sys.tracebacklimit = 0
     sys.excepthook = exception_handler
 
@@ -256,16 +261,21 @@ def prolog() -> Tuple[VMBArgs, ImageRepositoryBase.ImageRepositoryBase, AOLogger
     shell_logger.hush = True
 
     image_repository: ImageRepositoryBase = None
+
     channel = str(args.io_channel).lower()
     if channel == 's3':
         session = boto3.session.Session(region_name='us-east-1')
         client = session.client('s3')
-        dest_bucket = session.resource('s3').Bucket(S3_DEST_BUCKET)
-        image_repository = ImageRepositoryFactory.ImageRepositoryFactory().repository(channel, VMT_BUDABOM, client=client, bucket=dest_bucket)
+        dest_bucket = session.resource('s3').Bucket(args.bucket)
+        image_repository = ImageRepositoryFactory.ImageRepositoryFactory().repository(channel, VMT_BUDABOM,
+                                                                                      client=client, bucket=dest_bucket)
     else:
-        image_repository = ImageRepositoryFactory.ImageRepositoryFactory().repository(channel, VMT_BUDABOM, source_container=args.source_container,
-                                                             image_classifier=args.image_folder_name)
-#        IG_resolver = ImageGroupResolver(args.source_container, args.image_folder_name)
+        if channel == 'fs':
+            image_repository = ImageRepositoryFactory.ImageRepositoryFactory().repository(
+                channel,
+                VMT_BUDABOM,
+                source_container=args.source_container,
+                image_classifier=args.image_folder_name)
 
     shell_logger.hush = False
 
