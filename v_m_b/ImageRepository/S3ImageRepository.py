@@ -8,7 +8,7 @@ from boto.s3.bucket import Bucket
 # from manifestCommons import *
 import v_m_b.manifestCommons as Common
 from v_m_b.VolumeInfo.VolInfo import VolInfo
-from s3customtransfer import S3CustomTransfer
+from v_m_b.s3customtransfer import S3CustomTransfer
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
 
 
