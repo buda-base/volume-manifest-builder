@@ -32,6 +32,7 @@ class S3ImageRepository(ImageRepositoryBase):
         super(S3ImageRepository, self).__init__(bom)
         self._client = client
         self._bucket = dest_bucket
+        self._boto_paginator = self._client.get_paginator('list_objects_v2')
 
     def manifest_exists(self, work_Rid: str, image_group_id: str):
         """
@@ -95,7 +96,7 @@ class S3ImageRepository(ImageRepositoryBase):
                 return bom
 
             # no BOM. Enumerate the files
-            page_iterator = self._client.boto_paginator.paginate(Bucket=self._bucket.name, Prefix=full_image_group_path)
+            page_iterator = self._boto_paginator.paginate(Bucket=self._bucket.name, Prefix=full_image_group_path)
 
             # #10 filter out image files
             # filtered_iterator = page_iterator.search("Contents[?contains('Key','json') == `False`]")
@@ -110,7 +111,7 @@ class S3ImageRepository(ImageRepositoryBase):
 
             self.repo_log.debug(
                 f"fetched BOM from S3 list_objects: {len(image_list)} entries. path:{full_image_group_path}")
-        except Exception:
+        except Exception as eek:
             self.repo_log.warning(f"Could not populate BOM for {bom_path}")
         finally:
             pass

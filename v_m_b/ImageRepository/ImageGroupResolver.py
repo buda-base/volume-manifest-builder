@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -17,4 +18,7 @@ class ImageGroupResolver(object):
         :param image_group_name:
         :return: fully qualified path to image group
         """
-        return Path(self._container, workRid, self._image_classifier, image_group_name)
+        v1path = Path(self._container, workRid, self._image_classifier, image_group_name)
+        if not os.path.exists(v1path):
+            v1path = Path(self._container, workRid, self._image_classifier, f"{workRid}-{image_group_name}")
+        return v1path
