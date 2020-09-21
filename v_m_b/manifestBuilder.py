@@ -75,7 +75,7 @@ def manifestForList(sourceFile):
     global shell_logger
 
     if sourceFile is None:
-        raise ValueError("Usage: manifestforwork [ options ] sourceFile {fs | s3} [ command_options ]. "
+        raise ValueError("Usage: manifestforwork [ options ] -w sourceFile {fs | s3} [ command_options ]. "
                          "See manifestforwork -h")
 
     with sourceFile as f:

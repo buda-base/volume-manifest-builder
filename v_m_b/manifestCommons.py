@@ -73,8 +73,8 @@ def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
     :param workRid: Work identifier
     :return: VolList[imagegroup1..imagegroupn]
     """
-    from VolumeInfo.VolumeInfoBuda import VolumeInfoBUDA
-    from VolumeInfo.VolumeInfoeXist import VolumeInfoeXist
+    from v_m_b.VolumeInfo.VolumeInfoBuda import VolumeInfoBUDA
+    from v_m_b.VolumeInfo.VolumeInfoeXist import VolumeInfoeXist
 
     vol_infos: [] = []
     if BUDA_IMAGE_GROUP:

@@ -55,7 +55,7 @@ class FSImageRepository(ImageRepositoryBase):
         bom_home = self._IGResolver.full_path(work_rid, image_group)
         bom_path = Path(bom_home, bom_name)
 
-        image_list: []
+        image_list: [] = []
 
         # try reading the bom first
         if bom_path.exists():
