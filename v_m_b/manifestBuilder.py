@@ -52,7 +52,6 @@ def manifestFromS3():
             shell_logger.log(logging.ERROR, str(eek))
         time.sleep(abs(args.poll_interval))
 
-
 def manifestShell():
     """
     Prepares args for running
@@ -61,10 +60,21 @@ def manifestShell():
     global image_repo, shell_logger
     args, image_repo, shell_logger = Common.prolog()
 
-    manifestForList(args.work_list_file)
+    # Check to see if we're doing a list. these are mutually exclusive
+    all_well: bool = False
+    if args.work_list_file is not None:
+        all_well = manifestForList(args.work_list_file)
+    else:
+        all_well = doOneManifest(args.work_Rid)
+
+    if not all_well:
+        error_string = f"Some builds failed. See log file {shell_logger.log_file_name}"
+        print(error_string)
+        shell_logger.hush = True  # we were just leaving anyway. Errors are already logged and sent
+        raise Exception(error_string)
 
 
-def manifestForList(sourceFile):
+def manifestForList(sourceFile) -> bool:
     """
     reads a file containing a list of work RIDs and iterate the manifestForWork function on each.
     The file can be of a format the developer like, it doesn't matter much (.txt, .csv or .json)
@@ -78,39 +88,47 @@ def manifestForList(sourceFile):
         raise ValueError("Usage: manifestforwork [ options ] -w sourceFile {fs | s3} [ command_options ]. "
                          "See manifestforwork -h")
 
+    all_well: bool = True
     with sourceFile as f:
         for work_rid in f.readlines():
             work_rid = work_rid.strip()
-            try:
-                manifestForWork(work_rid)
-            except Exception as inst:
-                eek = sys.exc_info()
-                stack: str = ""
-                for tb in traceback.format_tb(eek[2], 5):
-                    stack += tb
-                shell_logger.error(f"{work_rid} failed to build manifest {type(inst)} {inst}\n{stack} ")
+            all_well &= doOneManifest(work_rid)
+    return all_well
 
 
-def manifestForWork(workRID: str):
+def doOneManifest(work_Rid: str) -> bool:
     """
     this function generates the manifests for each volume of a work RID (example W22084)
-    :type workRID: object
+    :type work_Rid: object
     """
 
     global image_repo, shell_logger
 
-    vol_infos: [VolInfo] = Common.getVolumeInfos(workRID, image_repo)
-    if len(vol_infos) == 0:
-        shell_logger.error(f"Could not find image groups for {workRID}")
-        return
+    is_success: bool = False
 
-    for vi in vol_infos:
-        _tick = time.monotonic()
-        manifest = image_repo.generateManifest(workRID, vi)
-        upload(workRID, vi.imageGroupID, manifest)
-        _et = time.monotonic() - _tick
-        print(f"Volume reading: {_et:05.3} ")
-        shell_logger.debug(f"Volume reading: {_et:05.3} ")
+    try:
+        vol_infos: [VolInfo] = Common.getVolumeInfos(work_Rid, image_repo)
+        if len(vol_infos) == 0:
+            shell_logger.error(f"Could not find image groups for {work_Rid}")
+            return is_success
+
+        for vi in vol_infos:
+            _tick = time.monotonic()
+            manifest = image_repo.generateManifest(work_Rid, vi)
+            upload(work_Rid, vi.imageGroupID, manifest)
+            _et = time.monotonic() - _tick
+            print(f"Volume reading: {_et:05.3} ")
+            shell_logger.debug(f"Volume reading: {_et:05.3} ")
+        is_success = True
+    except Exception as inst:
+        eek = sys.exc_info()
+        stack: str = ""
+        for tb in traceback.format_tb(eek[2], 5):
+            stack += tb
+        shell_logger.error(f"{work_Rid} failed to build manifest {type(inst)} {inst}\n{stack} ")
+        is_success = False
+
+    return is_success
 
 
 def upload(work_Rid: str, image_group_name: str, manifest_object: object):
@@ -134,5 +152,3 @@ def upload(work_Rid: str, image_group_name: str, manifest_object: object):
 if __name__ == '__main__':
     manifestShell()
     # manifestFromS3()
-    # manifestFromList
-    # manifestFor

@@ -1,5 +1,6 @@
 import hashlib
 import io
+from typing import Tuple
 
 import boto3
 import botocore
@@ -198,6 +199,14 @@ class S3ImageRepository(ImageRepositoryBase):
 
         suffix = self.getImageGroup(image_group_id)
         return f'Works/{two}/{work_Rid}/images/{work_Rid}-{suffix}/'
+
+    def resolveWork(self, work_rid_path: str) -> Tuple[str, str]:
+        """
+        S3 implementation
+        :param work_rid_path:
+        :return: reflects path back
+        """
+        return "", work_rid_path
 
 
 class DoneCallback(object):

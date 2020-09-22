@@ -47,11 +47,11 @@ class AOLogger:
 
         instance_id = f"{now.year}-{now.month:02}-{now.day:02}_{now.hour:02}_{now.minute:02}_{getpid()}.{app_name}.log"
 
-        log_file_path: Path = Path(str(log_file_root), instance_id)
+        self._log_file_path: Path = Path(str(log_file_root), instance_id)
         if not os.access(str(log_file_root), os.W_OK):
             raise NotADirectoryError(f"{log_file_root} is not  writable or does not exist")
 
-        main_handler = RotatingFileHandler(str(log_file_path), maxBytes=4096000, backupCount=100)
+        main_handler = RotatingFileHandler(str(self.log_file_name), maxBytes=4096000, backupCount=100)
 
         log_num_level: int = (getattr(logging, log_level.upper(), logging.INFO))
         # noinspection PyArgumentList
@@ -105,16 +105,20 @@ class AOLogger:
         self.py_logger.log(logging_level, message)
 
         # jimk: volume-manifest-builder #37 hushing the SNS message
-        if self.sns_arn:
-            if logging_level == logging.CRITICAL \
-                    or (logging_level == logging.ERROR and message != "KeyboardInterrupt") \
-                    and not self.hush:
-                try:
-                    self.logging_sns_client.publish(TopicArn=self.sns_arn, Message=f'{message}',
-                                                    Subject=f"{logging.getLevelName(logging_level)} in {self.app_name}",
-                                                    MessageStructure='string')
-                finally:
-                    pass
+        print(f"Going to sns? Hush = {self.hush}")
+        if not self.hush:
+            if self.sns_arn:
+                print(f"In sns arn handler")
+                if logging_level == logging.CRITICAL \
+                        or (logging_level == logging.ERROR and message != "KeyboardInterrupt"):
+                    try:
+                        self.logging_sns_client.publish(TopicArn=self.sns_arn,
+                                                        Message=f'{message}',
+                                                        Subject=f"{logging.getLevelName(logging_level)} "
+                                                                f"in {self.app_name}",
+                                                        MessageStructure='string')
+                    finally:
+                        pass
 
     def error(self, message: str):
         self.log(logging.ERROR, message)
@@ -143,3 +147,7 @@ class AOLogger:
     @hush.setter
     def hush(self, value: bool):
         self._hush = value
+
+    @property
+    def log_file_name(self) -> str:
+        return str(self._log_file_path)

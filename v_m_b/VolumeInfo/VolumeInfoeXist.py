@@ -37,7 +37,10 @@ class VolumeInfoeXist(VolumeInfoBase):
         if not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None):
             ssl._create_default_https_context = ssl._create_unverified_context
 
-        req = f'https://www.tbrc.org/public?module=work&query=work-igs&args={work_rid}'
+        _dir: str
+        _work: str
+        _dir, _work = self._repo.resolveWork(work_rid)
+        req = f'https://www.tbrc.org/public?module=work&query=work-igs&args={_work}'
 
         vol_info: List[Any] = []
         from lxml import etree

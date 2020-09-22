@@ -3,6 +3,7 @@ import json
 import os
 import sys
 from pathlib import Path, PurePath
+from typing import Tuple
 
 import aiofiles
 
@@ -21,13 +22,13 @@ class FSImageRepository(ImageRepositoryBase):
         :param image_group_id:
         :return:
         """
-        return Path(self._IGResolver.full_path(work_Rid, image_group_id), 'dimensions.json').exists()
+        return Path(self.resolveImageGroup(work_Rid, image_group_id), 'dimensions.json').exists()
 
     def generateManifest(self, work_Rid: str, vol_info: VolInfo) -> []:
         if self.manifest_exists(work_Rid, vol_info.imageGroupID):
             self.repo_log.info(f"manifest exists for work{work_Rid} image group {vol_info.imageGroupID}")
         import asyncio
-        full_path: Path = self._IGResolver.full_path(work_Rid, vol_info.imageGroupID)
+        full_path: Path = self.resolveImageGroup(work_Rid, vol_info.imageGroupID)
         manifest = asyncio.run(generateManifest_a(full_path, vol_info.image_list))
         # generateManifest_s(full_path, vol_info.image_list)
         return manifest
@@ -52,7 +53,7 @@ class FSImageRepository(ImageRepositoryBase):
         :return: list of images in an image group, either from the BOM or by listing all the non json files in a folder
         """
 
-        bom_home = self._IGResolver.full_path(work_rid, image_group)
+        bom_home = self.resolveImageGroup(work_rid, image_group)
         bom_path = Path(bom_home, bom_name)
 
         image_list: [] = []
@@ -77,7 +78,7 @@ class FSImageRepository(ImageRepositoryBase):
         :param manifest_zip:
         :return:
         """
-        bom_path = Path(self._IGResolver.full_path(work_rid, image_group), bom_name)
+        bom_path = Path(self.resolveImageGroup(work_rid, image_group), bom_name)
         with open(bom_path, "wb") as upl:
             upl.write(manifest_zip)
 
@@ -90,7 +91,7 @@ class FSImageRepository(ImageRepositoryBase):
         inpire from https://github.com/buda-base/buda-iiif-presentation/blob/master/src/main/java/
         io/bdrc/iiif/presentation/ImageInfoListService.java#L73
         Example:
-           - workRID=W22084, imageGroupID=I0886
+           - work_Rid=W22084, imageGroupID=I0886
            - result = "Works/60/W22084/images/W22084-0886/
         where:
            - 60 is the first two characters of the md5 of the string W22084
@@ -99,7 +100,32 @@ class FSImageRepository(ImageRepositoryBase):
               * or else the full image group ID (incuding the "I")
         """
         suffix = self.getImageGroup(image_group_id)
-        return f"{self._container}/{work_Rid}/images/{work_Rid}-{suffix}"
+        parent, rid = self.resolveWork(work_Rid)
+        return f"{parent}/{self._image_folder_name}/{rid}-{suffix}"
+
+    def resolveWork(self, work_rid_path: str) -> Tuple[str, str]:
+        """
+        Resolve work, possibly from path
+        :param work_rid_path:
+        :return: the path and the work_rid
+        """
+        w_path = self.fullPath(str(Path(self._container, work_rid_path)))
+        return os.path.dirname(w_path), os.path.basename(w_path)
+
+    def resolveImageGroup(self, work_Rid: str, image_group_name: str) -> Path:
+        """
+        Fully qualifies a RID and a Path
+        :param work_Rid:
+        :param image_group_name:
+        :return: fully qualified path to image group
+        """
+        _work: str
+        _dir, _work = self.resolveWork(work_Rid)
+        pre_path = Path(_dir, _work, self._image_folder_name)
+        v1path = Path(pre_path, f"{_work}-{image_group_name}")
+        if not os.path.exists(v1path):
+            v1path = Path(pre_path, image_group_name)
+        return v1path
 
 
 # downloading region
@@ -110,9 +136,7 @@ async def generateManifest_a(ig_container: PurePath, image_list: []) -> []:
     :param image_list: list of image names
     :returns: list of  internal data for each file in image_list
     """
-
     res: [] = []
-
     image_file_name: str
     for image_file_name in image_list:
         image_path: Path = Path(ig_container, image_file_name)

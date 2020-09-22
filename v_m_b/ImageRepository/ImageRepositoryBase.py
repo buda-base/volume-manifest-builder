@@ -4,6 +4,7 @@ Base class for image repositories
 
 from abc import ABCMeta, abstractmethod
 import logging
+from typing import Tuple
 
 from v_m_b.VolumeInfo.VolInfo import VolInfo
 
@@ -78,6 +79,26 @@ class ImageRepositoryBase(metaclass=ABCMeta):
         else:
             suffix = image_group_id
         return suffix
+
+    @abstractmethod
+    def resolveWork(self, work_rid_path: str) -> Tuple[str, str]:
+        """
+        split the work_rid_path into a directory and a path.
+        Implementation-defined
+        :param work_rid_path:
+        :return: the path and the work_rid
+        """
+        pass
+
+    @staticmethod
+    def fullPath(in_path: str) -> str:
+        """
+        Returns a fully qualitfied path according to the OS. Useful for resolving environment vars
+        :param in_path: path to expand
+        :return: expanded path, resolving user home specifiers and environment variables
+        """
+        import os
+        return os.path.expanduser(os.path.expandvars(in_path))
 
     # RO property
     @property

@@ -1,16 +1,17 @@
 import argparse
 import io
 import os
+import traceback
 from argparse import ArgumentParser
 from typing import Tuple
-import boto3
-import traceback
-from v_m_b.ImageRepository import ImageRepositoryFactory
-from v_m_b.ImageRepository import ImageRepositoryBase
 
-from v_m_b.S3WorkFileManager import S3WorkFileManager
-from v_m_b.AOLogger import AOLogger
+import boto3
 from PIL import Image
+
+from v_m_b.AOLogger import AOLogger
+from v_m_b.ImageRepository import ImageRepositoryBase
+from v_m_b.ImageRepository import ImageRepositoryFactory
+from v_m_b.S3WorkFileManager import S3WorkFileManager
 
 # for writing and GetVolumeInfos
 S3_DEST_BUCKET: str = "archive.tbrc.org"
@@ -83,17 +84,22 @@ def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
     if len(vol_infos) == 0:
         vol_infos = (VolumeInfoeXist(image_repo)).fetch(workRid)
 
+    # TODO:  VolumeInfoDisk
+
     return vol_infos
 
 
 def mustExistDirectory(path: str):
     """
     Argparse type specifying a string which represents
-    an existing file path
+    Supports user home specifiers and environment variables
     :param path:
     :return:
     """
-    realpath: str = os.path.expanduser(path)
+    if path is None or path == "":
+        return ""
+
+    realpath: str = os.path.expanduser(os.path.expandvars(path))
     if not os.path.isdir(realpath) or not os.path.exists(realpath):
         raise argparse.ArgumentTypeError(f"{realpath} not found")
     else:
@@ -107,7 +113,7 @@ def parse_args(arg_namespace: object):
     """
 
     _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
-                                      usage="%(prog)s sourcefile")
+                                      usage="%(prog)s [common options] { fs [fs options] | s3 [s3 options]}")
     child_parsers = _parser.add_subparsers(title='File System Parser', description="Handles file system options",
                                            dest="io_channel")
 
@@ -126,12 +132,6 @@ def parse_args(arg_namespace: object):
                          default='/tmp',
                          help="Path to log file directory")
 
-    _parser.add_argument("-c",
-                         '--checkImageInternals',
-                         dest='check_image_internals',
-                         action='store_true',
-                         help="Check image internals (slower)")
-
     # No special args for s3, they're baked in. See prolog()
     s3_parser = child_parsers.add_parser("s3")
     s3_parser.add_argument('-b',
@@ -145,13 +145,16 @@ def parse_args(arg_namespace: object):
 
     #
     # sourceFile only used in manifestForList
-    fs_parser.add_argument("-s",
-                           '--source-container',
-                           dest='source_container',
+    fs_parser.add_argument("-c",
+                           '--container',
                            action='store',
                            type=mustExistDirectory,
-                           required=True,
-                           help="container for all workRID archives")
+                           default="",
+                           help="container for all work_Rid archives. Prefixes entries in --source_rid or --workList")
+
+    fs_parser.add_argument("-s",
+                           "--source_rid",
+                           help="Work RID folder. Can be absolute or child of --container")
 
     fs_parser.add_argument("-i",
                            '--image-folder-name',
@@ -160,9 +163,20 @@ def parse_args(arg_namespace: object):
                            default="images",
                            help="name of parent folder of image files")
 
-    _parser.add_argument('-w', '--workList', dest='work_list_file',
-                         help="File containing one RID per line.",
-                         type=argparse.FileType('r'))
+    src_group = _parser.add_mutually_exclusive_group()
+
+    # the work list file must exist
+    src_group.add_argument('-f', '--workListFile',
+                           dest='work_list_file',
+                           help="File containing one RID per line.",
+                           type=argparse.FileType('r'))
+
+    # but the work rid need not exist, it is qualified by the --container arg
+    # if in fs mode, or the --bucket mode if in S3
+    src_group.add_argument('-w', '--work-Rid',
+                           dest='work_Rid',
+                           help='name or partially qualified path to one work',
+                           type=str)
 
     _parser.add_argument('-p',
                          '--poll-interval',
@@ -281,7 +295,7 @@ def prolog() -> Tuple[VMBArgs, ImageRepositoryBase.ImageRepositoryBase, AOLogger
             image_repository = ImageRepositoryFactory.ImageRepositoryFactory().repository(
                 channel,
                 VMT_BUDABOM,
-                source_container=args.source_container,
+                source_container=args.container,
                 image_classifier=args.image_folder_name)
 
     shell_logger.hush = False

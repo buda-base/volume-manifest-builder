@@ -23,7 +23,7 @@ Internal tool to create json manifests for volumes present in S3 for the IIIF pr
 #### Dependencies
 
 ##### Language
-Python 3.6 or newer. It is highly recommended to use `pip` to install, to manage dependencies. If you **must** do it yourself, you can refer to `setup.py` for the dependency list.
+Python 3.7 or newer. It is highly recommended to use `pip` to install, to manage dependencies. If you **must** do it yourself, you can refer to `setup.py` for the dependency list.
 
 ##### Environment
 1. Write access to `/var/log/VolumeManifestBuilder` which must exist.
@@ -32,18 +32,24 @@ Python 3.6 or newer. It is highly recommended to use `pip` to install, to manage
 
 # Installation
 ## PIP
-PyPI contains `bdrc-volume-manifest-builde` Install is simply
+PyPI contains `bdrc-volume-manifest-builder`
+### Global instakllation
+Install is simply
 `sudo python3 -m pip install --upgrade bdrc-volume-manifest-builder` to install system-wide (which is needed to run as a service)
+
+### Local installation
 To install and run locally, `python3 -m pip install --upgrade bdrc-volume-manifest-builder` will do. 
 
-When you install `volume-manifest-builder` two entry points are defined in `/usr/local/bin`:
-- `manifestforwork` the commad mode
+When you install `volume-manifest-builder` three entry points are defined in `/usr/local/bin`:
+- `manifestforlist` the command mode, which operates on a list of RIDs
+- `manifestforwork` alternate command line mode, which works on one path
 - `manifestFromS3` the mode which runs continuously, polling an S3 resource for a file, and processing all the files it finds.
+This is the mode which runs on a service.
  
 ## Development
 `volume-manifest-builder` is hosted on [BUDA Github volume-manifest-builder](https://github.com/buda-base/volume-manifest-builder/)
 
-- Credentials: you must have the input credentials for a specific AWS user installed to deposit into the archives.
+- Credentials: you must have the input credentials for a specific AWS user installed to deposit into the archives on s3.
 
 ## Building a distribution
 

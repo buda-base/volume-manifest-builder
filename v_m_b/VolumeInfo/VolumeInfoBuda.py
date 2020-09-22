@@ -64,7 +64,10 @@ class VolumeInfoBUDA(VolumeInfoBase):
         :return: VolInfo[]
         """
         vol_info = []
-        req = f'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:{work_rid}' \
+
+        _dir, _work = self._repo.resolveWork(work_rid)
+
+        req = f'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:{_work}' \
               '&format=csv&profile=simple&pageSize=500'
         try:
             with request.urlopen(req) as response:
