@@ -105,10 +105,8 @@ class AOLogger:
         self.py_logger.log(logging_level, message)
 
         # jimk: volume-manifest-builder #37 hushing the SNS message
-        print(f"Going to sns? Hush = {self.hush}")
         if not self.hush:
             if self.sns_arn:
-                print(f"In sns arn handler")
                 if logging_level == logging.CRITICAL \
                         or (logging_level == logging.ERROR and message != "KeyboardInterrupt"):
                     try:
