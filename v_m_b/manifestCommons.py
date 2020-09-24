@@ -114,7 +114,7 @@ def parse_args(arg_namespace: object):
 
     _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
                                       usage="%(prog)s [common options] { fs [fs options] | s3 [s3 options]}")
-    child_parsers = _parser.add_subparsers(title='File System Parser', description="Handles file system options",
+    child_parsers = _parser.add_subparsers(title='Repository Parser', description="Handles repository alternatives",
                                            dest="io_channel")
 
     _parser.add_argument("-d",
@@ -151,10 +151,6 @@ def parse_args(arg_namespace: object):
                            type=mustExistDirectory,
                            default="",
                            help="container for all work_Rid archives. Prefixes entries in --source_rid or --workList")
-
-    fs_parser.add_argument("-s",
-                           "--source_rid",
-                           help="Work RID folder. Can be absolute or child of --container")
 
     fs_parser.add_argument("-i",
                            '--image-folder-name',
