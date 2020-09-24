@@ -117,8 +117,7 @@ def doOneManifest(work_Rid: str) -> bool:
             manifest = image_repo.generateManifest(work_Rid, vi)
             upload(work_Rid, vi.imageGroupID, manifest)
             _et = time.monotonic() - _tick
-            print(f"Volume reading: {_et:05.3} ")
-            shell_logger.debug(f"Volume reading: {_et:05.3} ")
+            shell_logger.info(f"Volume {vi.imageGroupID} processing: {_et:05.3} s ")
         is_success = True
     except Exception as inst:
         eek = sys.exc_info()

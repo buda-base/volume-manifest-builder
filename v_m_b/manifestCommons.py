@@ -110,16 +110,22 @@ def mustExistDirectory(path: str):
         return realpath
 
 
-def parse_args(arg_namespace: object):
+def parse_args(arg_namespace: object) -> bool:
     """
     :rtype: object VMBArg with members
     :param arg_namespace. VMBArgs class which holds arg values
+    :return: truth value of no semantic errors
     """
 
+    succeeded: bool = True
+
     _parser = argparse.ArgumentParser(description="Prepares an inventory of image dimensions",
-                                      usage="%(prog)s [common options] { fs [fs options] | s3 [s3 options]}")
+                                      usage="%(prog)s [common options] { REPO_CHOICE: fs [fs options] | "
+                                            "s3 [s3 options] }")
+
     child_parsers = _parser.add_subparsers(title='Repository Parser', description="Handles repository alternatives",
-                                           dest="io_channel")
+                                           help="Use one of \"fs\" or \"s3\" ",
+                                           dest="REPO_CHOICE", required=True)
 
     _parser.add_argument("-d",
                          "--debugLevel",
@@ -153,7 +159,7 @@ def parse_args(arg_namespace: object):
                            '--container',
                            action='store',
                            type=mustExistDirectory,
-                           default="",
+                           default=".",
                            help="container for all work_Rid archives. Prefixes entries in --source_rid or --workList")
 
     fs_parser.add_argument("-i",
@@ -163,7 +169,7 @@ def parse_args(arg_namespace: object):
                            default="images",
                            help="name of parent folder of image files")
 
-    src_group = _parser.add_mutually_exclusive_group()
+    src_group = _parser.add_mutually_exclusive_group(required=True)
 
     # the work list file must exist
     src_group.add_argument('-f', '--workListFile',
@@ -188,6 +194,16 @@ def parse_args(arg_namespace: object):
 
     # noinspection PyTypeChecker
     _parser.parse_args(namespace=arg_namespace)
+
+    # semantic checks
+    if arg_namespace.REPO_CHOICE == "s3" and hasattr(arg_namespace, 'work_Rid') \
+            and os.path.dirname(arg_namespace.work_Rid) != '':
+        error_message: str = f"-w/--work_Rid argument {arg_namespace.work_Rid} must not be a path in s3 mode"
+        print(error_message)
+        _parser.print_usage()
+        succeeded = False
+
+    return succeeded
 
 
 def buildWorkListFromS3(client: object) -> (str, []):
@@ -275,7 +291,12 @@ def prolog() -> Tuple[VMBArgs, ImageRepositoryBase.ImageRepositoryBase, AOLogger
     global shell_logger
 
     args = VMBArgs()
-    parse_args(args)
+    succeeded: bool = parse_args(args)
+
+    # parsing has screen dumped what it needs
+    if not succeeded:
+        sys.exit(1)
+
     shell_logger = AOLogger('local_v_m_b', args.log_level, Path(args.log_parent))
 
     shell_logger.hush = True
@@ -283,7 +304,7 @@ def prolog() -> Tuple[VMBArgs, ImageRepositoryBase.ImageRepositoryBase, AOLogger
 
     image_repository: ImageRepositoryBase = None
 
-    channel = str(args.io_channel).lower()
+    channel = str(args.REPO_CHOICE).lower()
     if channel == 's3':
         session = boto3.session.Session(region_name='us-east-1')
         client = session.client('s3')

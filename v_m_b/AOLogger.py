@@ -19,7 +19,7 @@ class AOLogger:
     NOTSET: 'NOTSET',
     """
 
-    logging_session: boto3.Session
+    logging_session: object
     logging_sns_client: boto3.client
     py_logger: logging = None
     app_name: str
@@ -102,6 +102,8 @@ class AOLogger:
                 and logging_level != logging.DEBUG:
             warnings.warn(f"Invalid logging {logging_level} given. Contact author")
             return
+
+        print(f"{logging.getLevelName(logging_level)} - {message}")
         self.py_logger.log(logging_level, message)
 
         # jimk: volume-manifest-builder #37 hushing the SNS message

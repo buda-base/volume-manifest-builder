@@ -13,14 +13,14 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 console_scripts = ['manifestforwork = v_m_b.manifestBuilder:manifestShell',
                    'manifestFromS3 = v_m_b.manifestBuilder:manifestFromS3']
 
-setup(version='1.1.0',
+setup(version='1.1.1',
       name='bdrc-volume-manifest-builder',
       packages=find_packages(),
       url='https://github.com/buda-base/volume-manifest-builder/', license='', author='jimk',
       author_email='jimk@tbrc.org',
       description='Creates manifests for syncd works.',
       entry_points={'console_scripts': console_scripts},
-      install_requires=['boto3', 'requests', 'lxml', 'pillow', 'botocore',
+      install_requires=['boto3', 'requests', 'lxml', 'pillow', 'botocore', 'boto',
                         'aiofiles', 'requests'],
       python_requires='>=3.7',
       classifiers=["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License",
