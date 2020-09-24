@@ -123,8 +123,10 @@ class FSImageRepository(ImageRepositoryBase):
         _dir, _work = self.resolveWork(work_Rid)
         pre_path = Path(_dir, _work, self._image_folder_name)
         v1path = Path(pre_path, f"{_work}-{image_group_name}")
+
+        # all image groups must exist
         if not os.path.exists(v1path):
-            v1path = Path(pre_path, image_group_name)
+            raise FileNotFoundError(f"image group {v1path} not found.")
         return v1path
 
 

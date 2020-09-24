@@ -59,6 +59,10 @@ def fillDataWithBlobImage(blob: io.BytesIO, data):
     im = Image.open(blob)
     data["width"] = im.width
     data["height"] = im.height
+    if 'dpi' in im.info.keys():
+        data["dpi"] = im.info['dpi']
+    else:
+        data["dpi"] = []
     # we indicate sizes of the more than 1MB
     if size > 1000000:
         data["size"] = size
