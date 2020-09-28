@@ -7,6 +7,7 @@ from typing import Tuple
 
 import aiofiles
 
+from image.generateManifest import generateManifest_a
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
 from v_m_b.VolumeInfo.VolInfo import VolInfo
 from v_m_b.ImageRepository.ImageGroupResolver import ImageGroupResolver
@@ -129,53 +130,3 @@ class FSImageRepository(ImageRepositoryBase):
             raise FileNotFoundError(f"image group {v1path} not found.")
         return v1path
 
-
-# downloading region
-async def generateManifest_a(ig_container: PurePath, image_list: []) -> []:
-    """
-    this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
-    :param ig_container: path of parent of image group
-    :param image_list: list of image names
-    :returns: list of  internal data for each file in image_list
-    """
-    res: [] = []
-    image_file_name: str
-    for image_file_name in image_list:
-        image_path: Path = Path(ig_container, image_file_name)
-        imgdata = {"filename": image_file_name}
-        res.append(imgdata)
-        # extracted from fillData
-        async with aiofiles.open(image_path, "rb") as image_file:
-            image_buffer: bytes = await image_file.read()
-            bio: io.BytesIO = io.BytesIO(image_buffer)
-            Common.fillDataWithBlobImage(bio, imgdata)
-    return res
-
-
-def generateManifest_s(ig_container: PurePath, image_list: []) -> []:
-    """
-    this actually generates the manifest. See example in the repo. The example corresponds to W22084, image group I0886.
-    :param ig_container: path of parent of image group
-    :param image_list: list of image names
-    :returns: list of  internal data for each file in image_list
-    """
-
-    res = []
-
-    image_file_name: str
-    for image_file_name in image_list:
-        image_path: Path = Path(ig_container, image_file_name)
-        imgdata = {"filename": image_file_name}
-        res.append(imgdata)
-        # extracted from fillData
-        with open(str(image_path), "rb") as image_file:
-            image_buffer = image_file.read()
-            # image_buffer = io.BytesIO(image_file.read())
-            try:
-                fillDataWithBlobImage(io.BytesIO(image_buffer), imgdata)
-            except Exception as eek:
-                exc = sys.exc_info()
-                print(eek, exc[0])
-        # asyncio.run(fillData(image_path, imgdata))
-    return res
-# end region

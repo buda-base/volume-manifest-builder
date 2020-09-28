@@ -33,41 +33,6 @@ s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUC
                                                        done_prefix)
 shell_logger: AOLogger
 
-
-def fillDataWithBlobImage(blob: io.BytesIO, data):
-    """
-    This function populates a dict containing the height and width of the image
-    the image is the binary blob returned by s3, an image library should be used to treat it
-    please do not use the file system (saving as a file and then having the library read it)
-
-    This could be coded in a faster way, but the faster way doesn't work with group4 tiff:
-    https://github.com/python-pillow/Pillow/issues/3756
-
-    For pilmode, see
-    https://pillow.readthedocs.io/en/5.1.x/handbook/concepts.html#concept-modes
-
-    They are different from the Java ones:
-    https://docs.oracle.com/javase/8/docs/api/java/awt/image/BufferedImage.html
-
-    but they should be enough. Note that there's no 16 bit
-    """
-
-    # blob2 = io.BytesIO(blob)
-    # size = blob2.getbuffer().nbytes
-    # im = Image.open(blob2)
-    size = blob.getbuffer().nbytes
-    im = Image.open(blob)
-    data["width"] = im.width
-    data["height"] = im.height
-    if 'dpi' in im.info.keys():
-        data["dpi"] = im.info['dpi']
-    else:
-        data["dpi"] = []
-    # we indicate sizes of the more than 1MB
-    if size > 1000000:
-        data["size"] = size
-
-
 def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
     """
     Tries data sources for image group info. If BUDA_IMAGE_GROUP global is set, prefers
