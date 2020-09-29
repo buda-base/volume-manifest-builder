@@ -8,6 +8,7 @@ from boto.s3.bucket import Bucket
 
 # from manifestCommons import *
 import v_m_b.manifestCommons as Common
+from v_m_b.image.generateManifest import fillDataWithBlobImage
 from v_m_b.VolumeInfo.VolInfo import VolInfo
 from v_m_b.s3customtransfer import S3CustomTransfer
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
@@ -215,4 +216,4 @@ class DoneCallback(object):
         self._imgdata = imgdata
 
     def __call__(self):
-        Common.fillDataWithBlobImage(self._buffer, self._imgdata)
+        fillDataWithBlobImage(self._buffer, self._imgdata)

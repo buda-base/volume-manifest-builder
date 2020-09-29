@@ -134,7 +134,7 @@ def parse_args(arg_namespace: object) -> bool:
                            default="images",
                            help="name of parent folder of image files")
 
-    src_group = _parser.add_mutually_exclusive_group(required=True)
+    src_group = _parser.add_mutually_exclusive_group(required=False)
 
     # the work list file must exist
     src_group.add_argument('-f', '--workListFile',
@@ -161,7 +161,9 @@ def parse_args(arg_namespace: object) -> bool:
     _parser.parse_args(namespace=arg_namespace)
 
     # semantic checks
-    if arg_namespace.REPO_CHOICE == "s3" and hasattr(arg_namespace, 'work_Rid') \
+    if arg_namespace.REPO_CHOICE == "s3" \
+            and hasattr(arg_namespace, 'work_Rid') \
+            and arg_namespace.work_Rid is not None \
             and os.path.dirname(arg_namespace.work_Rid) != '':
         error_message: str = f"-w/--work_Rid argument {arg_namespace.work_Rid} must not be a path in s3 mode"
         print(error_message)

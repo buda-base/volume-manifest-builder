@@ -7,7 +7,7 @@ from typing import Tuple
 
 import aiofiles
 
-from image.generateManifest import generateManifest_a
+from v_m_b.image.generateManifest import generateManifest_a
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
 from v_m_b.VolumeInfo.VolInfo import VolInfo
 from v_m_b.ImageRepository.ImageGroupResolver import ImageGroupResolver
