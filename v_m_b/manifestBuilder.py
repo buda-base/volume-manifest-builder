@@ -29,7 +29,7 @@ def manifestFromS3():
     # manifestFromS3 specific checking - no -f -w arguments
     if (hasattr(args, 'work_Rid') and args.work_Rid is not None) \
             or (hasattr(args, 'work_list_file') and args.work_list_file is not None):
-        raise ValueError ("manifestFromS3 must be given without --work_Rid and --work_file_name argument.")
+        raise ValueError("manifestFromS3 must be given without --work_Rid and --work_file_name argument.")
 
     while True:
         try:
@@ -57,6 +57,7 @@ def manifestFromS3():
             shell_logger.log(logging.ERROR, str(eek))
         time.sleep(abs(args.poll_interval))
 
+
 def manifestShell():
     """
     Prepares args for running using command line or file system input
@@ -65,10 +66,9 @@ def manifestShell():
     global image_repo, shell_logger
     args, image_repo, shell_logger = Common.prolog()
 
-    # sanity check specific to fs args: -w or -f has to be given
-
-    # Check to see if we're doing a list. these are mutually exclusive
     all_well: bool = False
+
+    # sanity check specific to fs args: -w or -f has to be given
     if args.work_list_file is None and args.work_Rid is None:
         raise ValueError("Error: in fs mode, one of -w/--work_Rid or -f/--work_list_file must be given")
     if args.work_list_file is not None:
