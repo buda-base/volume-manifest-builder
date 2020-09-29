@@ -7,6 +7,7 @@
           <option value="N803" />
           <option value="N802" />
           <option value="N806" />
+          <option value="N801" />
         </list>
       </option>
       <option name="ignoredBaseClasses">
@@ -29,6 +30,10 @@
           <option value="object.*" />
           <option value="object.sourceFile" />
           <option value="v_m_t.manifestforwork.arg_namespace" />
+          <option value="localManifestForWork.VMBArgs.*" />
+          <option value="manifestCommons.VMBArgs.*" />
+          <option value="PIL.Image.Image.open" />
+          <option value="manifestCommons.work_Rid" />
         </list>
       </option>
     </inspection_tool>

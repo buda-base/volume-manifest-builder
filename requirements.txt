@@ -1,0 +1,9 @@
+boto3~=1.14.59
+Pillow~=7.2.0
+botocore~=1.17.59
+s3transfer~=0.3.3
+setuptools~=50.3.0
+boto~=2.49.0
+aiofiles~=0.5.0
+lxml
+requests

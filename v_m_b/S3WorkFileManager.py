@@ -16,12 +16,12 @@ class S3WorkFileManager:
         :return:
         """
 
-        instance_id = "unknown instance"
+        instance_id: str = "unknown instance"
         try:
             import requests
             response = requests.get('http://169.254.169.254/latest/meta-data/instance-id', timeout=2)
             instance_id = response.text
-        except:
+        except Exception:
             from os import getpid
             import platform
             import datetime

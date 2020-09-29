@@ -1,11 +1,6 @@
-# TODO
-* copy sattva:~dev/volume-manifest-builder/etc up to Git
-* document need credentials in /.aws (running as root)
-* document need manifest.sh installed from etc.
-* make sure all service/usr/local/bin files are executable by user `service`
-
-Define a service which launches on startup to run the volume manifest builder
-This service is built for a specific AWS AMI running Ubuntu (problems with Python 3.7 on ), but has also been tested on Debian 9 and 10 (stretch).
+# service
+Define a service which launches on startup to run the volume manifest tool
+This service is built for a specific AWS AMI running Ubuntu (problems with Python 3.7 on )
 ## Operating environment
 ### Prerequisites
 #### OS
@@ -14,6 +9,12 @@ This service is built for a specific AWS AMI running Ubuntu (problems with Pytho
 #### Software
 * python 3.7
 * volume_manifest_builder installed from pip for the global system. This should include its dependents (boto and others)
+#### Service user
+Create the user `service`, and the following folders:
+|||
+|----|----|
+`~service/tmp`|console log
+`~service/manifest`|working directory
 #### Service environment
 This service installation is built on the `systemctl` platform. The example `default.target` may be different on different Linuces.  On Debian 9, it is `multi-user.target`
 You will have to change the `manifest.service` file's  `[Install]` section's `WantedBy` property to match the host platform's target.
@@ -35,3 +36,7 @@ No compilation of the service files is required.
 1. Run `sudo systemctl enable <path to>manifest.service.` This should create a link in `/etc/systemd/system/<Install target you picked above>.d/` folder.
 
 This configures the system to launch the  /usr/local/bin/manifest-shell.sh on boot.  You can control and monitor the service using strandard `systemctl` commands. 
+## Maintenance
+To update the Volume Manifest Builder itself, see the installation instructions in the pyPI project
+Each instance generates a log file, which are stored in `/var/log/VolumeManifestTool.` make this directory on the target if it does not exist.
+

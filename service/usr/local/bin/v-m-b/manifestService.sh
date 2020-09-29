@@ -28,4 +28,6 @@ echo $MyPID >$PID_FILE
 
 # [[ -d ${LOG_DIR} ]] || { mkdir -p ${LOG_DIR} ;}
 
-$MANIFEST_PROG -l /var/log/VolumeManifestBuilder -d debug -i 600
+# jimk: volume-manifest-builder-34 change calling sequence to allow
+# local file system
+$MANIFEST_PROG -l /var/log/VolumeManifestBuilder -d debug -p 600 s3
