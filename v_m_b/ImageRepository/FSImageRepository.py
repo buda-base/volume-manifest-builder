@@ -27,11 +27,13 @@ class FSImageRepository(ImageRepositoryBase):
 
     def generateManifest(self, work_Rid: str, vol_info: VolInfo) -> []:
         if self.manifest_exists(work_Rid, vol_info.imageGroupID):
-            self.repo_log.info(f"manifest exists for work{work_Rid} image group {vol_info.imageGroupID}")
+            self.repo_log.info(f"manifest exists for work {work_Rid} image group {vol_info.imageGroupID}")
         import asyncio
+        manifest: [] = []
         full_path: Path = self.resolveImageGroup(work_Rid, vol_info.imageGroupID)
-        manifest = asyncio.run(generateManifest_a(full_path, vol_info.image_list))
-        # generateManifest_s(full_path, vol_info.image_list)
+        if full_path.exists():
+            manifest = asyncio.run(generateManifest_a(full_path, vol_info.image_list))
+            # generateManifest_s(full_path, vol_info.image_list)
         return manifest
 
     def __init__(self, bom_key: str, source_root: str, images_name: str):
@@ -126,7 +128,8 @@ class FSImageRepository(ImageRepositoryBase):
         v1path = Path(pre_path, f"{_work}-{image_group_name}")
 
         # all image groups must exist
-        if not os.path.exists(v1path):
-            raise FileNotFoundError(f"image group {v1path} not found.")
+        # volume-manifest-builder-#37 - allow nonexistent igs 2020.XI-03
+        # if not os.path.exists(v1path):
+        #     raise FileNotFoundError(f"image group {v1path} not found.")
         return v1path
 
