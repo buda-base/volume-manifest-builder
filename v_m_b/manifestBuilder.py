@@ -124,9 +124,14 @@ def doOneManifest(work_Rid: str) -> bool:
         for vi in vol_infos:
             _tick = time.monotonic()
             manifest = image_repo.generateManifest(work_Rid, vi)
-            upload(work_Rid, vi.imageGroupID, manifest)
-            _et = time.monotonic() - _tick
-            shell_logger.info(f"Volume {vi.imageGroupID} processing: {_et:05.3} s ")
+            if len(manifest) > 0:
+                upload(work_Rid, vi.imageGroupID, manifest)
+                _et = time.monotonic() - _tick
+                shell_logger.info(f"Volume {work_Rid}-{vi.imageGroupID} processing: {_et:05.3} sec ")
+            else:
+                _et = time.monotonic() - _tick
+                shell_logger.error(f"No manifest created for {work_Rid}-{vi.imageGroupID} ")
+
         is_success = True
     except Exception as inst:
         eek = sys.exc_info()
@@ -160,5 +165,5 @@ def upload(work_Rid: str, image_group_name: str, manifest_object: object):
 
 
 if __name__ == '__main__':
-    # manifestShell()
-    manifestFromS3()
+    manifestShell()
+    # manifestFromS3()

@@ -20,6 +20,8 @@ class ImageGroupResolver(object):
         """
         pre_path = Path(self._container, workRid, self._image_classifier)
         v1path = Path(pre_path,  f"{workRid}-{image_group_name}")
-        if not os.path.exists(v1path):
-            v1path = Path(pre_path, image_group_name)
+        # v-m-b #37 - build manifest fails when some igs are missing,
+        # because they are in TBRC but not scanned yet
+        # if not os.path.exists(v1path):
+        #     v1path = Path(pre_path, image_group_name)
         return v1path
