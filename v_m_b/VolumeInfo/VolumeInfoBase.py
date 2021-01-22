@@ -51,7 +51,6 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
             suffix = rest
         else:
             suffix = image_group_id
-        print(f"Input {image_group_id}")
         return suffix
 
     def getImageNames(self, work_rid: str, image_group: str, bom_name: str) -> []:
