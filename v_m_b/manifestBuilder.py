@@ -160,5 +160,5 @@ def upload(work_Rid: str, image_group_name: str, manifest_object: object):
 
 
 if __name__ == '__main__':
-    # manifestShell()
-    manifestFromS3()
+    manifestShell()
+    # manifestFromS3()

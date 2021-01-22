@@ -176,10 +176,10 @@ class S3ImageRepository(ImageRepositoryBase):
         except ClientError:
             self.repo_log.warn(f"Couldn't write json {key}")
 
-    def getPathfromLocators(self, work_Rid: str, image_group_id: str) -> str:
+    def getPathfromLocators(self, work_Rid: str, image_group_folder_name: str) -> str:
         """
         :param work_Rid: Work resource id
-        :param image_group_id: image group - gets transformed
+        :param image_group_folder_name: image group - gets transformed
         :returns:  the s3 prefix (~folder) in which the volume will be present.
 
         inpire from https://github.com/buda-base/buda-iiif-presentation/blob/master/src/main/java/
@@ -198,8 +198,8 @@ class S3ImageRepository(ImageRepositoryBase):
         md5 = hashlib.md5(str.encode(work_Rid))
         two = md5.hexdigest()[:2]
 
-        suffix = self.getImageGroup(image_group_id)
-        return f'Works/{two}/{work_Rid}/images/{work_Rid}-{suffix}/'
+        # Moved to VolInfossuffix = self.getImageGroup(image_group_folder_name)
+        return f'Works/{two}/{work_Rid}/images/{work_Rid}-{image_group_folder_name}/'
 
     def resolveWork(self, work_rid_path: str) -> Tuple[str, str]:
         """
