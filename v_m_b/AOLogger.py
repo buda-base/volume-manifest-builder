@@ -72,7 +72,7 @@ class AOLogger:
         # # This should be the parent of all loggers
         # logging.getLogger('').addHandler(main_handler)
 
-        for quiet_logger in ['boto', 'botocore', 'boto3', 'requests', 'urllib3', 'request', 's3transfer', 'PIL']:
+        for quiet_logger in ['boto', 'botocore', 'boto3', 'requests', 'urllib3', 'request', 's3transfer', 'PIL', 'asyncio' ]:
             ql = logging.getLogger(quiet_logger)
             ql.setLevel(logging.CRITICAL)
             ql.propagate = True
