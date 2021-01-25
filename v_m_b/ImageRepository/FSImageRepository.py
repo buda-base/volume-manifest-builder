@@ -115,17 +115,19 @@ class FSImageRepository(ImageRepositoryBase):
         w_path = self.fullPath(str(Path(self._container, work_rid_path)))
         return os.path.dirname(w_path), os.path.basename(w_path)
 
-    def resolveImageGroup(self, work_Rid: str, image_group_name: str) -> Path:
+    def resolveImageGroup(self, work_Rid: str, image_group_folder_name: str) -> Path:
         """
         Fully qualifies a RID and a Path
         :param work_Rid:
-        :param image_group_name:
-        :return: fully qualified path to image group
+        :param image_group_name: Image group folder name
+        :return: fully qualified path to image group. The I{d}{4} issue is resolved in VolInfo
         """
         _work: str
         _dir, _work = self.resolveWork(work_Rid)
+       # shouldn't need this any more, moved into Volinfos
+       # image_group_folder_name: str = self.getImageGroup(image_group_name)
         pre_path = Path(_dir, _work, self._image_folder_name)
-        v1path = Path(pre_path, f"{_work}-{image_group_name}")
+        v1path = Path(pre_path, f"{_work}-{image_group_folder_name}")
 
         # all image groups must exist
         # volume-manifest-builder-#37 - allow nonexistent igs 2020.XI-03

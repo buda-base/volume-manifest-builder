@@ -58,27 +58,12 @@ class ImageRepositoryBase(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def getPathfromLocators(self, work_Rid: str, image_group_id: str):
+    def getPathfromLocators(self, work_Rid: str, image_group_folder_name: str):
         """
         :param work_Rid: Work resource id
-        :param image_group_id: image group - gets transformed
+        :param image_group_folder_name: image group - gets transformed
         :returns:  the s3 prefix (~folder) in which the volume will be present.
         """
-
-    @staticmethod
-    def getImageGroup(image_group_id: str) -> str:
-        """
-        :param image_group_id:
-        :type image_group_id: str
-        Some old image groups in eXist are encoded Innn, but their real name on disk is
-        RID-nnnn. this detects their cases
-        """
-        pre, rest = image_group_id[0], image_group_id[1:]
-        if pre == 'I' and rest.isdigit() and len(rest) == 4:
-            suffix = rest
-        else:
-            suffix = image_group_id
-        return suffix
 
     @abstractmethod
     def resolveWork(self, work_rid_path: str) -> Tuple[str, str]:

@@ -71,7 +71,8 @@ class VolumeInfoeXist(VolumeInfoBase):
         """
         vi = []
         for ig in image_groups:
-            vol_infos = self.getImageNames(work_rid, ig, VMT_BUDABOM)
-            vi.append(VolInfo(vol_infos, ig))
+            ig_folder_name: str = self.getImageGroup(ig)
+            vol_infos = self.getImageNames(work_rid, ig_folder_name, VMT_BUDABOM)
+            vi.append(VolInfo(vol_infos, ig_folder_name))
 
         return vi

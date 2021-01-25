@@ -36,6 +36,23 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         """
         pass
 
+    @staticmethod
+    def getImageGroup(image_group_id: str) -> str:
+        """
+        :param image_group_id:
+        :type image_group_id: str
+        Some old image groups in eXist are encoded Innn, but their real name on disk is
+        RID-nnnn. this detects their cases, and returns the disk folder they actually
+        exist in. This is a stupid gross hack, we should either fix the archive repository, or have the
+        BUDA and/or eXist APIs adjust for this.
+        """
+        pre, rest = image_group_id[0], image_group_id[1:]
+        if pre == 'I' and rest.isdigit() and len(rest) == 4:
+            suffix = rest
+        else:
+            suffix = image_group_id
+        return suffix
+
     def getImageNames(self, work_rid: str, image_group: str, bom_name: str) -> []:
         """
         get names of the image files (actually, all the files in an image group, regardless

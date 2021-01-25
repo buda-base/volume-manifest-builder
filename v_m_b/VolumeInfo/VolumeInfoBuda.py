@@ -67,6 +67,7 @@ class VolumeInfoBUDA(VolumeInfoBase):
 
         _dir, _work = self._repo.resolveWork(work_rid)
 
+        # TODO: If we ever get this working again, good to document the output format
         req = f'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:{_work}' \
               '&format=csv&profile=simple&pageSize=500'
         try:
@@ -75,6 +76,10 @@ class VolumeInfoBUDA(VolumeInfoBase):
                 info = _info.decode('utf8').strip()
                 lines = info.split('\n')[1:]
                 for line in lines:  # info.split('\n')[1:]:
+                    # appears each line contains:
+                    # _  an ignored variable
+                    #  l an encoded list of images
+                    #  g the image group
                     _, l, g = line.replace('"', '').split(',')
                     #
                     # jimk: mod: redefine volInfo to expand list here, rather than just before processing.
