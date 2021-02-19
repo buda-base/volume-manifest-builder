@@ -24,7 +24,7 @@ class VolumeInfoBUDA(VolumeInfoBase):
 
         _dir, _work = self._repo.resolveWork(work_rid)
 
-        req= f'http://purl.bdrc.io/query/table/volumesForInstance?R_RES=bdr:{_work}&format=csv'
+        req = f'http://purl.bdrc.io/query/table/volumesForInstance?R_RES=bdr:{_work}&format=csv'
         try:
             with request.urlopen(req) as response:
                 _info = response.read()
