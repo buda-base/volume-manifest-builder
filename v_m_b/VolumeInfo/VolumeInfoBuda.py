@@ -1,58 +1,15 @@
+import csv
 from urllib import request
 
 from v_m_b.ImageRepository import ImageRepositoryBase
 from v_m_b.VolumeInfo.VolumeInfoBase import VolumeInfoBase
 from v_m_b.VolumeInfo.VolInfo import VolInfo
-
-
-def expand_image_list(image_list_str: str) -> []:
-    """
-    expands an image list string into an array. Image lists are documented on
-     http://purl.bdrc.io/ontology/core/imageList
-    see also this example in Java (although probably a bit too sophisticated):
-    https://github.com/buda-base/buda-iiif-presentation/blob
-    /d64a2c47c056bfa8658c06c1cddd2566ff4a0a2a/src/main/java/io/bdrc/
-    iiif/presentation/models/ImageListIterator.java
-    Example:
-       - image_list_str="I2PD44320001.tif:2|I2PD44320003.jpg"
-       - result ["I2PD44320001.tif","I2PD44320002.tif","I2PD44320003.jpg"]
-
-    :param image_list_str: encoded image list Filenameroot.ext:n|....
-    :return: list of strings which expands the encoded list of names
-    """
-    image_list = []
-    spans = image_list_str.split('|')
-    for s in spans:
-        if ':' in s:
-            name, count = s.split(':')
-            dot = name.find('.')
-            prefix, num, ext = name[:dot - 4], name[dot - 4:dot], name[dot:]
-            for i in range(int(count)):
-                incremented = str(int(num) + i).zfill(len(num))
-                image_list.append('{}{}{}'.format(prefix, incremented, ext))
-        else:
-
-            # jimk. #10  Don't add emptiness
-            if len(s) > 0:
-                image_list.append(s)
-
-    return image_list
-
+from v_m_b.manifestCommons import VMT_BUDABOM
 
 class VolumeInfoBUDA(VolumeInfoBase):
     """
-    this uses the LDS-PDI capabilities to get the volume list of a work, including, for each volume:
-    - image list
-    - image group ID
-
-    The information should be fetched (in csv or json) from lds-pdi, query for W00EGS1016299 for instance is:
-    http://purl.bdrc.io/query/Work_ImgList?R_RES=bdr:W00EGS1016299&format=csv&profile=simple&pageSize=500
-    item,list,grId
-    bdr:I00EGS1016299,,I1CZ5001
-    bdr:I00EGS101629,I1CZ50020001.tif:1266,I1CZ5002
-    bdr:I00EGS1016299,I1CZ50030001.tif:1136,I1CZ5003
-    bdr:I00EGS1016299,I1CZ50040001.tif:1276,I1CZ5004
-    bdr:I00EGS1016299,I1CZ50050001.tif:928,I1CZ5005
+    Gets the Volume list from BUDA. BUDA decided it did not want to support
+    the get image list, so we have to turn to the repository provider to get the list from the VMT_BUDABOM
     """
     def __init__(self, repo: ImageRepositoryBase):
         super(VolumeInfoBUDA, self).__init__(repo)
@@ -67,36 +24,30 @@ class VolumeInfoBUDA(VolumeInfoBase):
 
         _dir, _work = self._repo.resolveWork(work_rid)
 
-        # TODO: If we ever get this working again, good to document the output format
-        req = f'http://purl.bdrc.io/query/table/Work_ImgList?R_RES=bdr:{_work}' \
-              '&format=csv&profile=simple&pageSize=500'
+        req = f'http://purl.bdrc.io/query/table/volumesForInstance?R_RES=bdr:{_work}&format=csv'
         try:
             with request.urlopen(req) as response:
                 _info = response.read()
                 info = _info.decode('utf8').strip()
-                lines = info.split('\n')[1:]
-                for line in lines:  # info.split('\n')[1:]:
-                    # appears each line contains:
-                    # _  an ignored variable
-                    #  l an encoded list of images
-                    #  g the image group
-                    _, l, g = line.replace('"', '').split(',')
-                    #
-                    # jimk: mod: redefine volInfo to expand list here, rather than just before processing.
-                    image_list = expand_image_list(l)
+                vol_list_reader = csv.reader(info.split('\n'))
 
-                    # This is the case when the image list processing has broken or is not
-                    # # available. Fallback to slicing the image groups vertically
-                    if len(image_list) == 0:
-                        image_list = self.getImageNames(work_rid, g)
+                # skip header
+                next(vol_list_reader)
+                for vol_list in vol_list_reader:  # info.split('\n')[1:]:
+                    # jimk: mod: redefine volInfo to expand list here, rather than just before processing.
+                    # vol_list = ["1","bdr:I1Whatever"]
+                    image_group_name = vol_list[1].split(':')[1]
+
+                    # HACK
+                    image_group_folder = self.getImageGroup(image_group_name)
+                    image_list = self.getImageNames(work_rid, image_group_folder, VMT_BUDABOM)
 
                     # Dont add empty vol infos
                     if len(image_list) > 0:
-                        vi = VolInfo(image_list, g)
-                        # This is an interim hack to compensate for BUDA not having the information we need
+                        vi = VolInfo(image_list, image_group_folder)
                         vol_info.append(vi)
                     else:
-                        self.logger.warn(f"No images found in group {g}")
+                        self.logger.warn(f"No images found in group named {image_group_name} folder {image_group_folder}")
         # Swallow all exceptions.
         except Exception as eek:
             pass
