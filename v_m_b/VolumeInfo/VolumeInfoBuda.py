@@ -1,12 +1,10 @@
 import csv
-
 from urllib import request
 
 from v_m_b.ImageRepository import ImageRepositoryBase
 from v_m_b.VolumeInfo.VolumeInfoBase import VolumeInfoBase
 from v_m_b.VolumeInfo.VolInfo import VolInfo
 from v_m_b.manifestCommons import VMT_BUDABOM
-
 
 
 class VolumeInfoBUDA(VolumeInfoBase):
@@ -48,6 +46,7 @@ class VolumeInfoBUDA(VolumeInfoBase):
 
                     # find the last node on the path
                     image_group_name = uri_path_nodes.split('/')[-1]
+
 
                     # HACK
                     image_group_folder = self.getImageGroup(image_group_name)
