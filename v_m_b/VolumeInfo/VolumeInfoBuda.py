@@ -1,10 +1,13 @@
 import csv
+
 from urllib import request
 
 from v_m_b.ImageRepository import ImageRepositoryBase
 from v_m_b.VolumeInfo.VolumeInfoBase import VolumeInfoBase
 from v_m_b.VolumeInfo.VolInfo import VolInfo
 from v_m_b.manifestCommons import VMT_BUDABOM
+
+
 
 class VolumeInfoBUDA(VolumeInfoBase):
     """
@@ -20,23 +23,31 @@ class VolumeInfoBUDA(VolumeInfoBase):
         :param: work_rid
         :return: VolInfo[]
         """
+
+        from lxml import etree
         vol_info = []
 
         _dir, _work = self._repo.resolveWork(work_rid)
 
-        req = f'http://purl.bdrc.io/query/table/volumesForInstance?R_RES=bdr:{_work}&format=csv'
+        req = f'http://purl.bdrc.io/query/table/volumesForInstance?R_RES=bdr:{_work}&format=xml'
         try:
             with request.urlopen(req) as response:
-                _info = response.read()
-                info = _info.decode('utf8').strip()
-                vol_list_reader = csv.reader(info.split('\n'))
+                rTree = etree.parse(response)
+                rtRoot = rTree.getroot()
 
-                # skip header
-                next(vol_list_reader)
-                for vol_list in vol_list_reader:  # info.split('\n')[1:]:
-                    # jimk: mod: redefine volInfo to expand list here, rather than just before processing.
-                    # vol_list = ["1","bdr:I1Whatever"]
-                    image_group_name = vol_list[1].split(':')[1]
+                # There's a lot of churn about namespaces and xml, including discussion of lxml vs xml,
+                # but this works, using lxml
+                # Thanks to: https://izziswift.com/parsing-xml-with-namespace-in-python-via-elementtree/
+                for uri in rTree.findall('results/result/binding[@name="volid"]/uri',rtRoot.nsmap):
+                    # the XML format returns the URI, not the bdr:Image group name, so that needs to be
+                    # split out
+                    uri_path:[] = uri.text.split(':')
+
+                    # take the last thing
+                    uri_path_nodes: str = uri_path[-1]
+
+                    # find the last node on the path
+                    image_group_name = uri_path_nodes.split('/')[-1]
 
                     # HACK
                     image_group_folder = self.getImageGroup(image_group_name)
