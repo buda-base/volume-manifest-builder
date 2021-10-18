@@ -160,6 +160,8 @@ def upload(work_Rid: str, image_group_name: str, manifest_object: object):
     # for adict in manifest_object:
     #     print(f" dict: {adict} json: d{json.dumps(adict)}")
     manifest_str = json.dumps(manifest_object)
+    # Even for debug, this is a little excessive
+    # shell_logger.debug(manifest_str)
     manifest_gzip: bytes = Common.gzip_str(manifest_str)
     image_repo.uploadManifest(work_Rid, image_group_name, Common.VMT_DIM, manifest_gzip)
 

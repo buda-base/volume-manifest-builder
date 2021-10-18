@@ -1,6 +1,7 @@
 
 # downloading region
 import io
+import logging
 import sys
 from pathlib import PurePath, Path
 
@@ -18,14 +19,18 @@ async def generateManifest_a(ig_container: PurePath, image_list: []) -> []:
     res: [] = []
     image_file_name: str
     for image_file_name in image_list:
-        image_path: Path = Path(ig_container, image_file_name)
-        imgdata = {"filename": image_file_name}
-        res.append(imgdata)
-        # extracted from fillData
-        async with aiofiles.open(image_path, "rb") as image_file:
-            image_buffer: bytes = await image_file.read()
-            bio: io.BytesIO = io.BytesIO(image_buffer)
-            fillDataWithBlobImage(bio, imgdata)
+        try:
+            image_path: Path = Path(ig_container, image_file_name)
+            imgdata = {"filename": image_file_name}
+            res.append(imgdata)
+            # extracted from fillData
+            async with aiofiles.open(image_path, "rb") as image_file:
+                image_buffer: bytes = await image_file.read()
+                bio: io.BytesIO = io.BytesIO(image_buffer)
+                fillDataWithBlobImage(bio, imgdata)
+        except:
+            si = sys.exc_info()
+            logging.error(f"processing {image_file_name} async file processing {si[0]} {si[1]} ")
     return res
 
 
@@ -50,9 +55,9 @@ def generateManifest_s(ig_container: PurePath, image_list: []) -> []:
             # image_buffer = io.BytesIO(image_file.read())
             try:
                 fillDataWithBlobImage(io.BytesIO(image_buffer), imgdata)
-            except Exception as eek:
+            except:
                 exc = sys.exc_info()
-                print(eek, exc[0])
+                logging.error(f"processing {image_file_name} sync file processing {exc[0]} {exc[1]} ")
         # asyncio.run(fillData(image_path, imgdata))
     return res
 
@@ -78,6 +83,7 @@ def fillDataWithBlobImage(blob: io.BytesIO, data: dict):
     # blob2 = io.BytesIO(blob)
     # size = blob2.getbuffer().nbytes
     # im = Image.open(blob2)
+
     size = blob.getbuffer().nbytes
     im = Image.open(blob)
     data["width"] = im.width

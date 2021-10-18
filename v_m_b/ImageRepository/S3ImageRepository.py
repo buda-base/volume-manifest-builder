@@ -1,5 +1,6 @@
 import hashlib
 import io
+import sys
 from typing import Tuple
 
 import boto3
@@ -8,10 +9,10 @@ from boto.s3.bucket import Bucket
 
 # from manifestCommons import *
 import v_m_b.manifestCommons as Common
-from v_m_b.image.generateManifest import fillDataWithBlobImage
-from v_m_b.VolumeInfo.VolInfo import VolInfo
-from v_m_b.s3customtransfer import S3CustomTransfer
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
+from v_m_b.VolumeInfo.VolInfo import VolInfo
+from v_m_b.image.generateManifest import fillDataWithBlobImage
+from v_m_b.s3customtransfer import S3CustomTransfer
 
 
 class S3ImageRepository(ImageRepositoryBase):
@@ -56,13 +57,18 @@ class S3ImageRepository(ImageRepositoryBase):
         """
         buffer = io.BytesIO()
         try:
-            transfer.download_file(Common.S3_DEST_BUCKET, s3imageKey, buffer,
+            transfer.download_file(self._bucket.name, s3imageKey, buffer,
                                    callback=DoneCallback(buffer, imgdata))
         except botocore.exceptions.ClientError as e:
             if e.response['Error']['Code'] == '404':
                 self.repo_log.error(f"S3 object {s3imageKey} not found.")
             else:
+                ee = sys.exc_info()
+                self.repo_log.error(f"S3 Exception ei[0]:{ee[0]} ei[1]:{ee[1]}")
                 raise
+        finally:
+            # self.repo_log.debug(imgdata)
+            pass
 
     def generateManifest(self, work_Rid: str, vol_info: VolInfo) -> []:
         res = []

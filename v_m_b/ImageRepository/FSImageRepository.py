@@ -1,17 +1,14 @@
-import io
 import json
 import os
-import sys
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Tuple
 
-import aiofiles
-
-from v_m_b.image.generateManifest import generateManifest_a
+import v_m_b.manifestCommons as Common
+from v_m_b.ImageRepository.ImageGroupResolver import ImageGroupResolver
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
 from v_m_b.VolumeInfo.VolInfo import VolInfo
-from v_m_b.ImageRepository.ImageGroupResolver import ImageGroupResolver
-import v_m_b.manifestCommons as Common
+# You only use onf generateManifest_a or _s
+from v_m_b.image.generateManifest import generateManifest_s
 
 
 class FSImageRepository(ImageRepositoryBase):
@@ -28,12 +25,11 @@ class FSImageRepository(ImageRepositoryBase):
     def generateManifest(self, work_Rid: str, vol_info: VolInfo) -> []:
         if self.manifest_exists(work_Rid, vol_info.imageGroupID):
             self.repo_log.info(f"manifest exists for work {work_Rid} image group {vol_info.imageGroupID}")
-        import asyncio
         manifest: [] = []
         full_path: Path = self.resolveImageGroup(work_Rid, vol_info.imageGroupID)
         if full_path.exists():
-            manifest = asyncio.run(generateManifest_a(full_path, vol_info.image_list))
-            # generateManifest_s(full_path, vol_info.image_list)
+            # manifest = asyncio.run(generateManifest_a(full_path, vol_info.image_list))
+            manifest = generateManifest_s(full_path, vol_info.image_list)
         return manifest
 
     def __init__(self, bom_key: str, source_root: str, images_name: str):
@@ -119,13 +115,13 @@ class FSImageRepository(ImageRepositoryBase):
         """
         Fully qualifies a RID and a Path
         :param work_Rid:
-        :param image_group_name: Image group folder name
+        :param image_group_folder_name: Image group folder name
         :return: fully qualified path to image group. The I{d}{4} issue is resolved in VolInfo
         """
         _work: str
         _dir, _work = self.resolveWork(work_Rid)
-       # shouldn't need this any more, moved into Volinfos
-       # image_group_folder_name: str = self.getImageGroup(image_group_name)
+        # shouldn't need this any more, moved into Volinfos
+        # image_group_folder_name: str = self.getImageGroup(image_group_name)
         pre_path = Path(_dir, _work, self._image_folder_name)
         v1path = Path(pre_path, f"{_work}-{image_group_folder_name}")
 
@@ -134,4 +130,3 @@ class FSImageRepository(ImageRepositoryBase):
         # if not os.path.exists(v1path):
         #     raise FileNotFoundError(f"image group {v1path} not found.")
         return v1path
-

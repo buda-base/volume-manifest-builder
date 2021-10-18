@@ -9,7 +9,7 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
-      <webServer id="71895eac-5750-4848-9f03-f3e7cf6975c5" name="sattva">
+      <webServer id="71895eac-5750-4848-9f03-f3e7cf6975c5" name="sattva (project level)">
         <fileTransfer accessType="SFTP" host="sattva" port="22" sshConfigId="c08a9d18-092e-4248-9769-c899b1784523" sshConfig="jimk@sattva:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
