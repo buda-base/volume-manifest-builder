@@ -40,7 +40,6 @@ class FSImageRepository(ImageRepositoryBase):
         """
         super(FSImageRepository, self).__init__(bom_key)
         self._container = source_root
-        self._image_folder_name = images_name
         self._IGResolver = ImageGroupResolver(source_root, images_name)
 
     def getImageNames(self, work_rid: str, image_group: str, bom_name: str) -> []:

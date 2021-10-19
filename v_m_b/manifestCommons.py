@@ -6,7 +6,6 @@ from argparse import ArgumentParser
 from typing import Tuple
 
 import boto3
-from PIL import Image
 
 from v_m_b.AOLogger import AOLogger
 from v_m_b.ImageRepository import ImageRepositoryBase
@@ -28,10 +27,12 @@ done_prefix: str = "processing/done/"
 VMT_BUDABOM: str = 'fileList.json'
 VMT_BUDABOM_JSON_KEY: str = 'filename'
 VMT_DIM: str = 'dimensions.json'
+VMT_DEFAULT_IG_PARENT: str = 'images'
 
 s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUCKET, todo_prefix, processing_prefix,
                                                        done_prefix)
 shell_logger: AOLogger
+
 
 def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
     """
@@ -107,6 +108,13 @@ def parse_args(arg_namespace: object) -> bool:
                          default='/tmp',
                          help="Path to log file directory")
 
+    _parser.add_argument("-i",
+                         '--image-group-parent',
+                         dest='image_group_parent',
+                         action='store',
+                         default=VMT_DEFAULT_IG_PARENT,
+                         help="name of parent folder of image groups")
+
     # No special args for s3, they're baked in. See prolog()
     s3_parser = child_parsers.add_parser("s3")
     s3_parser.add_argument('-b',
@@ -114,7 +122,13 @@ def parse_args(arg_namespace: object) -> bool:
                            action='store',
                            required=False,
                            default=S3_DEST_BUCKET,
-                           help='Bucket - source and destination')
+                           help='source bucket')
+    s3_parser.add_argument('-o',
+                           '--output_bucket',
+                           action='store',
+                           required=False,
+                           default=S3_DEST_BUCKET,
+                           help='destination bucket')
 
     fs_parser: ArgumentParser = child_parsers.add_parser("fs")
 
@@ -127,12 +141,12 @@ def parse_args(arg_namespace: object) -> bool:
                            default=".",
                            help="container for all work_Rid archives. Prefixes entries in --source_rid or --workList")
 
-    fs_parser.add_argument("-i",
-                           '--image-folder-name',
-                           dest='image_folder_name',
+    fs_parser.add_argument("-o",
+                           '--output-folder-name',
+                           dest='output_folder_name',
                            action='store',
-                           default="images",
-                           help="name of parent folder of image files")
+                           default=VMT_DEFAULT_IG_PARENT,
+                           help="name of destination folder (under the work)")
 
     src_group = _parser.add_mutually_exclusive_group(required=False)
 
@@ -231,8 +245,7 @@ def exception_handler(exception_type, exception, tb: traceback):
     error_string: str = f"{exception_type.__name__}: {exception}\n"
 
     if tb is not None:
-
-        error_string += f"\ntraceback:\n\t{ ''.join(traceback.format_tb(tb, limit=3))}"
+        error_string += f"\ntraceback:\n\t{''.join(traceback.format_tb(tb, limit=3))}"
 
     if shell_logger is None:
         print(error_string)

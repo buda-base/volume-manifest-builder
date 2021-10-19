@@ -16,16 +16,9 @@ from v_m_b.s3customtransfer import S3CustomTransfer
 
 
 class S3ImageRepository(ImageRepositoryBase):
-
-    def upload_manifest(self, *args):
-        pass
-
-    def get_bom(self):
-        """
-
-        :return: text of volume bill of materials
-        """
-        pass
+    """
+    Images and results are on S3
+    """
 
     def __init__(self, bom: str, client: boto3.client, dest_bucket: Bucket):
         """
@@ -205,7 +198,7 @@ class S3ImageRepository(ImageRepositoryBase):
         two = md5.hexdigest()[:2]
 
         # Moved to VolInfossuffix = self.getImageGroup(image_group_folder_name)
-        return f'Works/{two}/{work_Rid}/images/{work_Rid}-{image_group_folder_name}/'
+        return f'Works/{two}/{work_Rid}/{self.output_bucket}/{work_Rid}-{image_group_folder_name}/'
 
     def resolveWork(self, work_rid_path: str) -> Tuple[str, str]:
         """

@@ -2,8 +2,8 @@
 Base class for image repositories
 """
 
-from abc import ABCMeta, abstractmethod
 import logging
+from abc import ABCMeta, abstractmethod
 from typing import Tuple
 
 from v_m_b.VolumeInfo.VolInfo import VolInfo
@@ -97,3 +97,4 @@ class ImageRepositoryBase(metaclass=ABCMeta):
         """
         self._bom = bom
         self._log = logging.getLogger(__name__)
+        self._image_folder_name = images_name
