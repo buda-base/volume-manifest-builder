@@ -7,13 +7,13 @@ from os import path
 from setuptools import setup, find_packages
 
 this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+with open(path.join(this_directory, 'README.md')) as f:
     long_description = f.read()
 
 console_scripts = ['manifestforwork = v_m_b.manifestBuilder:manifestShell',
                    'manifestFromS3 = v_m_b.manifestBuilder:manifestFromS3']
 
-setup(version='1.1.5',
+setup(version='1.1.6',
       name='bdrc-volume-manifest-builder',
       packages=find_packages(),
       url='https://github.com/buda-base/volume-manifest-builder/', license='', author='jimk',
