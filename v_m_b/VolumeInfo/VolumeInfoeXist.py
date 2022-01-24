@@ -40,7 +40,7 @@ class VolumeInfoeXist(VolumeInfoBase):
         _dir: str
         _work: str
         _dir, _work = self._repo.resolveWork(work_rid)
-        req = f'https://www.tbrc.org/public?module=work&query=work-igs&args={_work}'
+        req = f'https://legacy.tbrc.org/public?module=work&query=work-igs&args={_work}'
 
         vol_info: List[Any] = []
         from lxml import etree
