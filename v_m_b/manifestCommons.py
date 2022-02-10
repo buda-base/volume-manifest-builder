@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from typing import Tuple
 
 import boto3
-from PIL import Image
+# from PIL import Image
 
 from v_m_b.AOLogger import AOLogger
 from v_m_b.ImageRepository import ImageRepositoryBase
@@ -17,7 +17,7 @@ from v_m_b.S3WorkFileManager import S3WorkFileManager
 S3_DEST_BUCKET: str = "archive.tbrc.org"
 
 # jimk Toggle legacy and new sources
-BUDA_IMAGE_GROUP = True
+BUDA_IMAGE_GROUP = False
 
 S3_MANIFEST_WORK_LIST_BUCKET: str = "manifest.bdrc.org"
 LOG_FILE_ROOT: str = "/var/log/VolumeManifestTool"

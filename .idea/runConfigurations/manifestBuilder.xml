@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="generateManifest" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+  <configuration default="false" name="manifestBuilder" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
     <module name="volume-manifest-tool" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
@@ -7,13 +7,13 @@
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
     <option name="SDK_HOME" value="" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../tmp/volume-manifest-builder" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../tmp" />
     <option name="IS_MODULE_SDK" value="true" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/v_m_b/image/generateManifest.py" />
-    <option name="PARAMETERS" value="-l . ./W20869" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/v_m_b/manifestBuilder.py" />
+    <option name="PARAMETERS" value="-l . -d debug -w ./W8LS68211 fs -c ./Archive" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
