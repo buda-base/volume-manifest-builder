@@ -88,6 +88,8 @@ def fillDataWithBlobImage(blob: io.BytesIO, data: dict):
     im = Image.open(blob)
     data["width"] = im.width
     data["height"] = im.height
+    # jimk volume_manifest_builder #52
+    data["format"] = im.format
     if 'dpi' in im.info.keys():
         # debian PIL casts these to floats, and debian JSON can't dump them to string
         data["dpi"] = [int(x) for x in im.info['dpi']]
