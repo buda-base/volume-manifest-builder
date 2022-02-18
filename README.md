@@ -209,3 +209,7 @@ Be sure to check PyPI for current release, and update accordingly. Use [PEP440](
 python3 setup.py bdist_wheel
 twine upload dist/<thing you built
 ```
+
+# Project changelog
+v 1.2.0:
+- Sort all output by filename

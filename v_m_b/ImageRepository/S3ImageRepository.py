@@ -76,9 +76,12 @@ class S3ImageRepository(ImageRepositoryBase):
         parent: str = self.getPathfromLocators(work_Rid, vol_info.imageGroupID)
         #
         # jkmod: moved expand_image_list into VolumeInfoBUDA class
+        print(vol_info.imageGroupID)
         for imageFileName in vol_info.image_list:
             image_key: str = parent + imageFileName
             imgdata = {"filename": imageFileName}
+            # if vol_info.imageGroupID == "I3CN1308":
+            #     print(imgdata)
             res.append(imgdata)
             self.fillData(transfer, image_key, imgdata)
 
@@ -123,6 +126,7 @@ class S3ImageRepository(ImageRepositoryBase):
             self.repo_log.warning(f"Could not populate BOM for {bom_path}")
         finally:
             pass
+        image_list.sort()
         return image_list
 
     def read_bom_from_s3(self, bom_path: str) -> list:

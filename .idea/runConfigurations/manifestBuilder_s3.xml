@@ -14,7 +14,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="manifestBuilder" />
-    <option name="PARAMETERS" value="-d debug -w W8LS68211 s3 -b manifest.bdrc.org" />
+    <option name="PARAMETERS" value="-d debug -w W1FEMC044420 s3 -b manifest.bdrc.org" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="true" />

@@ -66,6 +66,8 @@ class FSImageRepository(ImageRepositoryBase):
             if bom_home.exists():
                 image_list = [f for f in os.listdir(str(bom_home)) if os.path.isfile(Path(bom_home, f))
                               and not str(f).lower().endswith('json')]
+
+        image_list.sort()
         return image_list
 
     def uploadManifest(self, work_rid: str, image_group: str, bom_name: str, manifest_zip: bytes):
