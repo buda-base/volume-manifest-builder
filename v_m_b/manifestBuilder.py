@@ -130,7 +130,7 @@ def doOneManifest(work_Rid: str) -> bool:
                 shell_logger.info(f"Volume {work_Rid}-{vi.imageGroupID} processing: {_et:05.3} sec ")
             else:
                 _et = time.monotonic() - _tick
-                shell_logger.error(f"No manifest created for {work_Rid}-{vi.imageGroupID} ")
+                shell_logger.info(f"No manifest created for {work_Rid}-{vi.imageGroupID} ")
 
         is_success = True
     except Exception as inst:
