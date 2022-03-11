@@ -13,7 +13,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="manifestBuilder" />
-    <option name="PARAMETERS" value="-l . -d debug -w W8LS68211 fs -c ~/dev/tmp/Archive -i images" />
+    <option name="PARAMETERS" value="-l . -d debug -w W8LS68211 fs -c / -i images" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="true" />
