@@ -1,4 +1,3 @@
-
 # downloading region
 import io
 import logging
@@ -7,6 +6,41 @@ from pathlib import PurePath, Path
 
 import aiofiles
 from PIL import Image
+
+
+IMG_JPG='JPEG'
+IMG_TIF='TIFF'
+JPG_EXT= 'JPG'
+TIF_EXT= 'TIF'
+
+# The keys are the image file types as extracted from the blob
+
+# The values are lists of possible file extension which correspond to the key
+# to those lists
+BUDA_supported_file_exts: {} = {IMG_JPG : [IMG_JPG, JPG_EXT], IMG_TIF :[IMG_TIF, TIF_EXT]}
+
+
+def is_BUDA_Matching_file_ext(file_name: str, image_data_format: str) -> bool:
+    """
+    Returns true if the incoming file name is in BUDAs oo
+    :param file_name: name of file to test (to provide suffix)
+    :param image_data_format: from internal image data- what the file thinks it is.
+    :return:
+    """
+
+    if not image_data_format or not file_name:
+        return False
+
+    # is the given format supported at all?
+    if image_data_format not in BUDA_supported_file_exts.keys():
+        return False
+
+    file_suffix = Path(file_name).suffix.upper()[1:]
+
+
+    # Is the extension in one of the lists of the supported types?
+    matches:[] = [ x for x in BUDA_supported_file_exts[image_data_format] if x.upper() == file_suffix]
+    return len(matches) > 0
 
 
 async def generateManifest_a(ig_container: PurePath, image_list: []) -> []:
@@ -88,13 +122,14 @@ def fillDataWithBlobImage(blob: io.BytesIO, data: dict):
     im = Image.open(blob)
     data["width"] = im.width
     data["height"] = im.height
+
     # jimk volume_manifest_builder #52
-    data["format"] = im.format
-    if 'dpi' in im.info.keys():
-        # debian PIL casts these to floats, and debian JSON can't dump them to string
-        data["dpi"] = [int(x) for x in im.info['dpi']]
-    else:
-        data["dpi"] = []
+    if not is_BUDA_Matching_file_ext(data["filename"], im.format):
+        data["format"] = im.format
+
+    # debian PIL casts these to floats, and debian JSON can't dump them to string
+    data["dpi"] = [int(x) for x in im.info['dpi']] if 'dpi' in im.info.keys() else []
+
     # we indicate sizes of the more than 1MB
     if size > 1000000:
         data["size"] = size
