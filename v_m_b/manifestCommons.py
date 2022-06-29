@@ -17,7 +17,7 @@ from v_m_b.S3WorkFileManager import S3WorkFileManager
 S3_DEST_BUCKET: str = "archive.tbrc.org"
 
 # jimk Toggle legacy and new sources
-BUDA_IMAGE_GROUP = False
+BUDA_IMAGE_GROUP = True
 
 S3_MANIFEST_WORK_LIST_BUCKET: str = "manifest.bdrc.org"
 LOG_FILE_ROOT: str = "/var/log/VolumeManifestTool"
