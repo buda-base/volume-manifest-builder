@@ -126,6 +126,10 @@ def fillDataWithBlobImage(blob: io.BytesIO, data: dict):
     # jimk volume_manifest_builder #52
     if not is_BUDA_Matching_file_ext(data["filename"], im.format):
         data["format"] = im.format
+        # Part of archive-ops-607 asked for this.
+        # Will emit one of the COMPRESSION_INFO enums in https://pillow.readthedocs.io/en/stable/_modules/PIL/TiffImagePlugin.html
+        if (data["format"] == IMG_TIF) & ("compression" in im.info.keys()):
+            data["compression"] = im.info["compression"]
 
     # debian PIL casts these to floats, and debian JSON can't dump them to string
     data["dpi"] = [int(x) for x in im.info['dpi']] if 'dpi' in im.info.keys() else []
