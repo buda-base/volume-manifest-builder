@@ -9,7 +9,7 @@ import traceback
 
 # from manifestCommons import prolog, getVolumeInfos, gzip_str, VMT_BUDABOM
 import v_m_b.manifestCommons as Common
-from v_m_b.AOLogger import AOLogger
+from v_m_b.AOLog.AOLogger import AOLogger
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
 from v_m_b.VolumeInfo.VolInfo import VolInfo
 
