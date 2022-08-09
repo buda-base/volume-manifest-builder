@@ -149,7 +149,7 @@ def upload_volume(work_rid: str, vol_info: VolInfo, repo: ImageRepositoryBase, l
     _tick = time.monotonic()
     manifest = repo.generateManifest(work_rid, vol_info)
     if len(manifest) > 0:
-        upload(work_rid, vol_info.imageGroupID, manifest)
+        upload(work_rid, vol_info.imageGroupID, manifest, repo)
         _et = time.monotonic() - _tick
         logger.info(f"Volume {work_rid}-{vol_info.imageGroupID} processing: {_et:05.3} sec ")
     else:
@@ -159,7 +159,7 @@ def upload_volume(work_rid: str, vol_info: VolInfo, repo: ImageRepositoryBase, l
     return True
 
 
-def upload(work_Rid: str, image_group_name: str, manifest_object: object):
+def upload(work_Rid: str, image_group_name: str, manifest_object: object, image_repo: ImageRepositoryBase):
     """
     inspire from:
     https://github.com/buda-base/drs-deposit/blob/2f2d9f7b58977502ae5e90c08e77e7deee4c470b/contrib/tojsondimensions.py#L68
