@@ -122,15 +122,7 @@ def doOneManifest(work_Rid: str) -> bool:
             return is_success
 
         for vi in vol_infos:
-            _tick = time.monotonic()
-            manifest = image_repo.generateManifest(work_Rid, vi)
-            if len(manifest) > 0:
-                upload(work_Rid, vi.imageGroupID, manifest)
-                _et = time.monotonic() - _tick
-                shell_logger.info(f"Volume {work_Rid}-{vi.imageGroupID} processing: {_et:05.3} sec ")
-            else:
-                _et = time.monotonic() - _tick
-                shell_logger.info(f"No manifest created for {work_Rid}-{vi.imageGroupID} ")
+            upload_volume(work_Rid, vi, image_repo, shell_logger)
 
         is_success = True
     except Exception as inst:
@@ -142,6 +134,29 @@ def doOneManifest(work_Rid: str) -> bool:
         is_success = False
 
     return is_success
+
+
+def upload_volume(work_rid: str, vol_info: VolInfo, repo: ImageRepositoryBase, logger: AOLogger) -> bool:
+    """
+    Create and upload a partial work, given a work_rid and a specific set of VolInfos.
+    Used in ao_workflows
+    :param work_rid: Work Resource
+    :param vol_info: Specific image group to process
+    :param repo: Repository to use
+    :param logger: logger to use
+    :return:
+    """
+    _tick = time.monotonic()
+    manifest = repo.generateManifest(work_rid, vol_info)
+    if len(manifest) > 0:
+        upload(work_rid, vol_info.imageGroupID, manifest)
+        _et = time.monotonic() - _tick
+        logger.info(f"Volume {work_rid}-{vol_info.imageGroupID} processing: {_et:05.3} sec ")
+    else:
+        _et = time.monotonic() - _tick
+        logger.info(f"No manifest created for {work_rid}-{vol_info.imageGroupID} ")
+
+    return True
 
 
 def upload(work_Rid: str, image_group_name: str, manifest_object: object):
