@@ -17,7 +17,7 @@ from v_m_b.S3WorkFileManager import S3WorkFileManager
 S3_DEST_BUCKET: str = "archive.tbrc.org"
 
 # jimk Toggle legacy and new sources
-BUDA_IMAGE_GROUP = False
+BUDA_IMAGE_GROUP = True
 
 S3_MANIFEST_WORK_LIST_BUCKET: str = "manifest.bdrc.org"
 LOG_FILE_ROOT: str = "/var/log/VolumeManifestTool"
@@ -47,6 +47,7 @@ def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
     from v_m_b.VolumeInfo.VolumeInfoeXist import VolumeInfoeXist
 
     vol_infos: [] = []
+    # Try BUDA first, and only if that fails, try eXist
     if BUDA_IMAGE_GROUP:
         vol_infos = (VolumeInfoBUDA(image_repo)).fetch(workRid)
 
