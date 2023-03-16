@@ -8,7 +8,7 @@ from typing import Tuple
 import boto3
 # from PIL import Image
 
-from v_m_b.AOLog.AOLogger import AOLogger
+from util_lib.AOLogger import AOLogger
 from v_m_b.ImageRepository import ImageRepositoryBase
 from v_m_b.ImageRepository import ImageRepositoryFactory
 from v_m_b.S3WorkFileManager import S3WorkFileManager
