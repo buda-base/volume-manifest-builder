@@ -4,12 +4,6 @@
 
 - Ability to use either file system or S3 for image repository
 
-## Changelog
-
-| Version | Commit   |Comment|
-|---------|----------|-----|
-| 1.2.6   | 6d600c53 | Expose standalone creation of one volume's manifest | 
-
 ## Intent
 
 This project originated as a script to extract image dimensions from a work, and:

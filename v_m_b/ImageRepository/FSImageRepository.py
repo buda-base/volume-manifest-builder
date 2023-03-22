@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from typing import Tuple
 
+
 import v_m_b.manifestCommons as Common
 from v_m_b.ImageRepository.ImageGroupResolver import ImageGroupResolver
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
@@ -30,6 +31,8 @@ class FSImageRepository(ImageRepositoryBase):
         if full_path.exists():
             # manifest = asyncio.run(generateManifest_a(full_path, vol_info.image_list))
             manifest = generateManifest_s(full_path, vol_info.image_list)
+        else:
+            self.repo_log.error(f"image group path {str(full_path)} not found")
         return manifest
 
     def __init__(self, bom_key: str, source_root: str, images_name: str):
@@ -60,12 +63,16 @@ class FSImageRepository(ImageRepositoryBase):
         # try reading the bom first
         if bom_path.exists():
             with open(bom_path, "rb") as f:
+                self.repo_log.debug(f"Using {str(bom_path)} as BOM")
                 json_body = json.loads(f.read())
                 image_list = [x[Common.VMT_BUDABOM_JSON_KEY] for x in json_body]
         else:
             if bom_home.exists():
+                self.repo_log.debug(f"Using dir {str(bom_home)}")
                 image_list = [f for f in os.listdir(str(bom_home)) if os.path.isfile(Path(bom_home, f))
                               and not str(f).lower().endswith('json')]
+            else:
+                self.repo_log.error(f"BOM path {str(bom_path)} doesnt exist and dir {str(bom_home)} doesnt exist.")
 
         image_list.sort()
         return image_list
