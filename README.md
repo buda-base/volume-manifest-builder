@@ -258,10 +258,11 @@ twine upload dist/<thing you built
 
 # Project changelog
 
-| Release | Changes                       |
-|---------|-------------------------------|
-| 1.2.8   | Update changelog to readme    |
-| 1.2.7   | Use bdrc-util logging         |
-| 1.2.6   | Use BUDA only  for resolution |
-|         | Use BUDA first for resolution |
-| 1.2.0   | Sort all output by filename   |
+| Release | Changes                         |
+|---------|---------------------------------|
+| 1.2.9   | Error diags in generateManifest |
+| 1.2.8   | Update changelog to readme      |
+| 1.2.7   | Use bdrc-util logging           |
+| 1.2.6   | Use BUDA only  for resolution   |
+|         | Use BUDA first for resolution   |
+| 1.2.0   | Sort all output by filename     |

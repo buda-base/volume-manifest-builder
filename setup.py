@@ -19,7 +19,7 @@ except(IOError, ImportError):
 console_scripts = ['manifestforwork = v_m_b.manifestBuilder:manifestShell',
                    'manifestFromS3 = v_m_b.manifestBuilder:manifestFromS3']
 
-setup(version='1.2.8',
+setup(version='1.2.9',
       name='bdrc-volume-manifest-builder',
       packages=find_packages(),
       url='https://github.com/buda-base/volume-manifest-builder/', license='', author='jimk',
