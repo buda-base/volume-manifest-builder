@@ -152,8 +152,8 @@ class S3ImageRepository(ImageRepositoryBase):
                                len(obj), len(json_body), bom_path)
         except ClientError as ex:
             errstr: str = f"ClientError Exception {ex.response['Error']['Code']} Message " \
-                          " f{ex.response['Error']['Message']} on object {ex.response['Error']['Key']} " \
-                          "for our BOMPath  {bom_path}  from bucket {self._bucket.name}"
+                          f" f{ex.response['Error']['Message']} on object {ex.response['Error']['Key']} " \
+                          f"for our BOMPath  {bom_path}  from bucket {self._bucket.name}"
 
             if ex.response['Error']['Code'] == 'NoSuchKey':
                 self.repo_log.warning(errstr)
