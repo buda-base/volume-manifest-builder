@@ -260,6 +260,7 @@ twine upload dist/<thing you built
 
 | Release | Changes                         |
 |---------|---------------------------------|
+| 1.2.10  | Clean up S3 error message       |
 | 1.2.9   | Error diags in generateManifest |
 | 1.2.8   | Update changelog to readme      |
 | 1.2.7   | Use bdrc-util logging           |
