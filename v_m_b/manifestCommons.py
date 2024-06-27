@@ -98,6 +98,12 @@ def parse_args(arg_namespace: object) -> bool:
                          action='store',
                          default='/tmp',
                          help="Path to log file directory")
+    _parser.add_argument("-i",
+                           '--image-folder-name',
+                           dest='image_folder_name',
+                           action='store',
+                           default=VMT_IMAGES,
+                           help="name of parent folder of image files")
 
     # No special args for s3, they're baked in. See prolog()
     s3_parser = child_parsers.add_parser("s3")
@@ -119,12 +125,6 @@ def parse_args(arg_namespace: object) -> bool:
                            default=".",
                            help="container for all work_rid archives. Prefixes entries in --source_rid or --workList")
 
-    fs_parser.add_argument("-i",
-                           '--image-folder-name',
-                           dest='image_folder_name',
-                           action='store',
-                           default=VMT_IMAGES,
-                           help="name of parent folder of image files")
 
     src_group = _parser.add_mutually_exclusive_group(required=False)
 

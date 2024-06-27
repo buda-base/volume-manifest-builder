@@ -56,7 +56,7 @@ class S3ImageRepository(ImageRepositoryBase):
         transfer = S3CustomTransfer(self._client)
         parent: S3Path = self.resolve_image_group(work_Rid, vol_info)
         #
-        print(vol_info)
+        self.repo_log.debug(vol_info)
         for image_s3 in parent.iter_objects():
             if image_s3.is_file():
                 image_file_name: str = image_s3.fname
@@ -81,16 +81,16 @@ class S3ImageRepository(ImageRepositoryBase):
         :param manifest_zip:
         :return:
         """
-        key:S3Path = S3Path(self.resolve_image_group(work_rid, image_group), bom_name)
+        key: S3Path = S3Path(self.resolve_image_group(work_rid, image_group), bom_name)
         self.repo_log.debug("writing " + key.fname)
         from botocore.exceptions import ClientError
         try:
-            self._client.put_object(Key=key, Body=manifest_zip,
+            self._client.put_object(Key=key.key, Body=manifest_zip,
                                     Metadata={'ContentType': 'application/json', 'ContentEncoding': 'gzip'},
                                     Bucket=self._bucket.name)
-            self.repo_log.info("wrote " + key)
+            self.repo_log.info("wrote " + key.fname)
         except ClientError:
-            self.repo_log.warn(f"Couldn't write json {key}")
+            self.repo_log.warn(f"Couldn't write json {key.abspath}")
 
     def resolve_image_group(self, work_rid: str, image_group_disk: str) -> S3Path:
         """
@@ -107,7 +107,7 @@ class S3ImageRepository(ImageRepositoryBase):
             PurePath(get_s3_location(Common.VMT_WORK_PARENT, work_rid)).parts
             + PurePath( self.images_folder_name, f"{work_rid}-{image_group_disk}").parts)
 
-        return S3Path(Common.S3_DEST_BUCKET, locator)
+        return S3Path(self._bucket.name, locator)
 
 
 
