@@ -16,9 +16,6 @@ from v_m_b.S3WorkFileManager import S3WorkFileManager
 # for writing and GetVolumeInfos
 S3_DEST_BUCKET: str = "archive.tbrc.org"
 
-# jimk Toggle legacy and new sources
-BUDA_IMAGE_GROUP = True
-
 S3_MANIFEST_WORK_LIST_BUCKET: str = "manifest.bdrc.org"
 LOG_FILE_ROOT: str = "/var/log/VolumeManifestTool"
 todo_prefix: str = "processing/todo/"
@@ -28,34 +25,28 @@ done_prefix: str = "processing/done/"
 VMT_BUDABOM: str = 'fileList.json'
 VMT_BUDABOM_JSON_KEY: str = 'filename'
 VMT_DIM: str = 'dimensions.json'
+VMT_WORK_PARENT: str = "Works"
+VMT_IMAGES: str = "images"
 
 s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUCKET, todo_prefix, processing_prefix,
                                                        done_prefix)
 shell_logger: AOLogger
 
+
 def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
     """
     Tries data sources for image group info. If BUDA_IMAGE_GROUP global is set, prefers
     BUDA source, tries eXist on BUDA fail.
+    :param workRid: Work identifier
+    :type workRid: str
     :param image_repo: Image repository object
     :type image_repo: ImageRepositoryBase
-    :type workRid: str
-    :param workRid: Work identifier
-    :return: VolList[imagegroup1..imagegroupn]
+    :return: [imagegroup1..imagegroupn]
     """
     from v_m_b.VolumeInfo.VolumeInfoBuda import VolumeInfoBUDA
-    from v_m_b.VolumeInfo.VolumeInfoeXist import VolumeInfoeXist
 
-    vol_infos: [] = []
-    # Try BUDA first, and only if that fails, try eXist
-    if BUDA_IMAGE_GROUP:
-        vol_infos = (VolumeInfoBUDA(image_repo)).fetch(workRid)
-
-    if len(vol_infos) == 0:
-        vol_infos = (VolumeInfoeXist(image_repo)).fetch(workRid)
-
-    # TODO:  VolumeInfoDisk
-
+    vol_infos: []
+    vol_infos = (VolumeInfoBUDA(image_repo)).get_image_group_disk_paths(workRid)
     return vol_infos
 
 
@@ -126,13 +117,13 @@ def parse_args(arg_namespace: object) -> bool:
                            action='store',
                            type=mustExistDirectory,
                            default=".",
-                           help="container for all work_Rid archives. Prefixes entries in --source_rid or --workList")
+                           help="container for all work_rid archives. Prefixes entries in --source_rid or --workList")
 
     fs_parser.add_argument("-i",
                            '--image-folder-name',
                            dest='image_folder_name',
                            action='store',
-                           default="images",
+                           default=VMT_IMAGES,
                            help="name of parent folder of image files")
 
     src_group = _parser.add_mutually_exclusive_group(required=False)
@@ -145,28 +136,20 @@ def parse_args(arg_namespace: object) -> bool:
 
     # but the work rid need not exist, it is qualified by the --container arg
     # if in fs mode, or the --bucket mode if in S3
-    src_group.add_argument('-w', '--work-Rid',
-                           dest='work_Rid',
+    src_group.add_argument('-w', '--work-rid',
+                           dest='work_rid',
                            help='name or partially qualified path to one work',
                            type=str)
-
-    _parser.add_argument('-p',
-                         '--poll-interval',
-                         dest='poll_interval',
-                         help="Seconds between alerts for file.",
-                         required=False,
-                         default=60,
-                         type=int)
 
     # noinspection PyTypeChecker
     _parser.parse_args(namespace=arg_namespace)
 
     # semantic checks
     if arg_namespace.REPO_CHOICE == "s3" \
-            and hasattr(arg_namespace, 'work_Rid') \
-            and arg_namespace.work_Rid is not None \
-            and os.path.dirname(arg_namespace.work_Rid) != '':
-        error_message: str = f"-w/--work_Rid argument {arg_namespace.work_Rid} must not be a path in s3 mode"
+            and hasattr(arg_namespace, 'work_rid') \
+            and arg_namespace.work_rid is not None \
+            and os.path.dirname(arg_namespace.work_rid) != '':
+        error_message: str = f"-w/--work_rid argument {arg_namespace.work_rid} must not be a path in s3 mode"
         print(error_message)
         _parser.print_usage()
         succeeded = False
@@ -232,8 +215,7 @@ def exception_handler(exception_type, exception, tb: traceback):
     error_string: str = f"{exception_type.__name__}: {exception}\n"
 
     if tb is not None:
-
-        error_string += f"\ntraceback:\n\t{ ''.join(traceback.format_tb(tb, limit=3))}"
+        error_string += f"\ntraceback:\n\t{''.join(traceback.format_tb(tb, limit=3))}"
 
     if shell_logger is None:
         print(error_string)
@@ -277,16 +259,19 @@ def prolog() -> Tuple[VMBArgs, ImageRepositoryBase.ImageRepositoryBase, AOLogger
         session = boto3.session.Session(region_name='us-east-1')
         client = session.client('s3')
         dest_bucket = session.resource('s3').Bucket(args.bucket)
-        image_repository = ImageRepositoryFactory.ImageRepositoryFactory().repository(channel, VMT_BUDABOM,
-                                                                                      client=client, bucket=dest_bucket)
-    else:
-        if channel == 'fs':
-            image_repository = ImageRepositoryFactory.ImageRepositoryFactory().repository(
-                channel,
-                VMT_BUDABOM,
-                source_container=args.container,
-                image_classifier=args.image_folder_name)
+        image_repository = (ImageRepositoryFactory.ImageRepositoryFactory().
+                            repository(channel,
+                                       client=client,
+                                       bucket=dest_bucket,
+                                       image_classifier=args.image_folder_name))
+    if channel == 'fs':
+        image_repository = (ImageRepositoryFactory.ImageRepositoryFactory()
+        .repository(
+            channel,
+            source_container=args.container,
+            image_classifier=args.image_folder_name))
 
     shell_logger.hush = False
 
     return args, image_repository, shell_logger
+
