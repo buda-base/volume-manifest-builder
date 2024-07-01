@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 from typing import Tuple
+from util_lib.utils import reallypath
 
 
 import v_m_b.manifestCommons as Common
@@ -35,7 +36,9 @@ class FSImageRepository(ImageRepositoryBase):
         :param images_name: subfolder of the work which contains the image group folders
         """
         super(FSImageRepository, self).__init__(images_name)
-        self._container = os.path.expanduser(os.path.expandvars(source_root))
+        # This insures _container is always absolute. You need this so that
+        # you can pass a path in the --work-rid argument
+        self._container = reallypath(source_root)
         self._image_folder_name = images_name
 #        self._IGResolver = ImageGroupResolver(source_root, images_name)
 
@@ -53,7 +56,6 @@ class FSImageRepository(ImageRepositoryBase):
         with open(bom_path, "wb") as upl:
             upl.write(manifest_zip)
 
-
     def resolve_image_group(self, work_rid: str, image_group_disk: str) -> Path:
         """
         Fully qualifies a RID and a Path
@@ -61,6 +63,20 @@ class FSImageRepository(ImageRepositoryBase):
         :param image_group_disk: Image group folder name
         :return: fully qualified path to image group on disk.
         """
-        return Path(os.path.expanduser(os.path.expandvars(self._container)),
-                    work_rid, self.images_folder_name,
-                    f"{work_rid}-{image_group_disk}")
+        _dir, _work_rid = self.resolve_work(work_rid)
+        return Path(reallypath(self._container),
+                    _dir, _work_rid, self.images_folder_name,
+                    f"{_work_rid}-{image_group_disk}")
+
+    def manifest_exists(self, work_Rid: str, image_group_name: str) -> bool:
+        dims_path: Path =  Path(self.resolve_image_group(work_Rid, image_group_name), Common.VMT_DIM)
+        return dims_path.exists()
+
+    def resolve_work(self, work_rid: str) -> (object, str):
+        """
+        Resolve a work RID to a path and identifier
+        :param work_rid: work identifier
+        :return: path to the work
+        """
+        _p: Path =  Path(reallypath(self._container), work_rid)
+        return _p.parent, _p.name

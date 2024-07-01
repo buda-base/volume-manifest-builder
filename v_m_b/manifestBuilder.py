@@ -12,6 +12,16 @@ import v_m_b.manifestCommons as Common
 from util_lib.AOLogger import AOLogger
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
 
+USE_RETURN_ = """
+    Create and upload a manifest for an image group, given a work_rid and a specific set of VolInfos.
+    Used in ao_workflows
+    :param work_rid: Work Resource
+    :param image_group: Specific image group to process
+    :param repo: Repository to use
+    :param logger: logger to use
+    :return:
+    """
+
 image_repo: ImageRepositoryBase
 shell_logger: AOLogger
 
@@ -91,15 +101,6 @@ def doOneManifest(work_rid: str) -> bool:
 
 
 def upload_volume(work_rid: str, image_group: str, repo: ImageRepositoryBase, logger: AOLogger) -> bool:
-    """
-    Create and upload a manifest for an image group, given a work_rid and a specific set of VolInfos.
-    Used in ao_workflows
-    :param work_rid: Work Resource
-    :param image_group: Specific image group to process
-    :param repo: Repository to use
-    :param logger: logger to use
-    :return:
-    """
     _tick = time.monotonic()
     manifest = repo.generateManifest(work_rid, image_group)
     if len(manifest) > 0:

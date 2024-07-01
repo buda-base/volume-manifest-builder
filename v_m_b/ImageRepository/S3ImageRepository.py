@@ -109,7 +109,17 @@ class S3ImageRepository(ImageRepositoryBase):
 
         return S3Path(self._bucket.name, locator)
 
+    def manifest_exists(self, work_Rid: str, image_group_name: str) -> bool:
+            dims_path:S3Path = S3Path(self.resolve_image_group(work_Rid, image_group_name), Common.VMT_DIM)
+            return dims_path.exists()
 
+    def resolve_work(self, work_rid: str) -> (object, str):
+        """
+        Resolve a work RID to a path and identifier
+        :param work_rid: work identifier
+        :return: path to the work
+        """
+        return (self._bucket, work_rid)
 
 class DoneCallback(object):
     def __init__(self, buffer, imgdata):

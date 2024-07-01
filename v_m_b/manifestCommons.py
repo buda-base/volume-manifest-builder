@@ -33,12 +33,12 @@ s3_work_manager: S3WorkFileManager = S3WorkFileManager(S3_MANIFEST_WORK_LIST_BUC
 shell_logger: AOLogger
 
 
-def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
+def getVolumeInfos(work_rid: str, image_repo: ImageRepositoryBase) -> []:
     """
     Tries data sources for image group info. If BUDA_IMAGE_GROUP global is set, prefers
     BUDA source, tries eXist on BUDA fail.
-    :param workRid: Work identifier
-    :type workRid: str
+    :param work_rid: Work identifier
+    :type work_rid: str
     :param image_repo: Image repository object
     :type image_repo: ImageRepositoryBase
     :return: [imagegroup1..imagegroupn]
@@ -46,7 +46,8 @@ def getVolumeInfos(workRid: str, image_repo: ImageRepositoryBase) -> []:
     from v_m_b.VolumeInfo.VolumeInfoBuda import VolumeInfoBUDA
 
     vol_infos: []
-    vol_infos = (VolumeInfoBUDA(image_repo)).get_image_group_disk_paths(workRid)
+    _dir, _work = image_repo.resolve_work(work_rid)
+    vol_infos = (VolumeInfoBUDA(image_repo)).get_image_group_disk_paths(_work)
     return vol_infos
 
 
