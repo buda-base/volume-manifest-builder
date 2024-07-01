@@ -57,6 +57,7 @@ class ImageRepositoryBase(metaclass=ABCMeta):
         :param manifest: file list
         :return: reduced set, only files without errors
         """
+        self.repo_log.info(f"cleaning manifest removed: {[x for x in manifest if 'error'  in x]}")
         return  [x for x in manifest if "error" not in x]
 
 
