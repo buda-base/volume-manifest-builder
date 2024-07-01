@@ -4,7 +4,8 @@ Base class for image repositories
 
 from abc import ABCMeta, abstractmethod
 import logging
-from typing import Tuple
+
+import v_m_b.manifestCommons as Common
 
 
 class ImageRepositoryBase(metaclass=ABCMeta):
@@ -17,13 +18,29 @@ class ImageRepositoryBase(metaclass=ABCMeta):
         :param image_group_name: which image group (volume)
         :return: true if the args point to a path containing a 'dimensions.json' object
         """
+
         if "FSImage" in type(self).__name__:
             from pathlib import Path
-            dims_path: Path =  Path(self.resolve_image_group(work_Rid, image_group_id), Common.VMT_DIM)
+            dims_path: Path =  Path(self.resolve_image_group(work_Rid, image_group_name), Common.VMT_DIM)
             return dims_path.exists()
         if "S3Image" in type(self).__name__:
             from s3pathlib import S3Path
-            dims_path:S3Path = S3Path(self.resolve_image_group(work_Rid, image_group_id), Common.VMT_DIM)
+            dims_path:S3Path = S3Path(self.resolve_image_group(work_Rid, image_group_name), Common.VMT_DIM)
+            return dims_path.exists()
+
+    def resolve_work(self, work_rid: str) -> (object, str):
+        """
+        Resolve a work RID to a path and identifier
+        :param work_rid: work identifier
+        :return: path to the work
+        """
+        if "FSImage" in type(self).__name__:
+            from pathlib import Path
+            dims_path: Path =  work_rid
+            return dims_path.parent, dims_path.name
+        if "S3Image" in type(self).__name__:
+            from s3pathlib import S3Path
+            dims_path:S3Path = S3Path(self.resolve_image_group(work_Rid, image_group_name), Common.VMT_DIM)
             return dims_path.exists()
 
     @abstractmethod
