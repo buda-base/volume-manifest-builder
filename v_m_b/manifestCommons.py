@@ -99,12 +99,33 @@ def parse_args(arg_namespace: object) -> bool:
                          action='store',
                          default='/tmp',
                          help="Path to log file directory")
+
+    _parser.add_argument("-m",
+                         '--image-folder-name',
+                         dest='image_folder_name',
+                         action='store',
+                         default=VMT_IMAGES,
+                         help="name of parent folder of image files")
+
     _parser.add_argument("-i",
-                           '--image-folder-name',
-                           dest='image_folder_name',
-                           action='store',
-                           default=VMT_IMAGES,
-                           help="name of parent folder of image files")
+                         '--image-group',
+                         action='store',
+                         help="comma separated disk path of one or more image groups to process.")
+
+    # but the work rid need not exist, it is qualified by the --container arg
+    # if in fs mode, or the --bucket mode if in S3
+    src_group = _parser.add_mutually_exclusive_group(required=False)
+
+    src_group.add_argument('-w', '--work-rid',
+                           dest='work_rid',
+                           help='name or path to one work',
+                           type=str)
+
+    # the work list file must exist
+    src_group.add_argument('-f', '--workListFile',
+                           dest='work_list_file',
+                           help="File containing one RID per line.",
+                           type=argparse.FileType('r'))
 
     # No special args for s3, they're baked in. See prolog()
     s3_parser = child_parsers.add_parser("s3")
@@ -126,26 +147,11 @@ def parse_args(arg_namespace: object) -> bool:
                            default=".",
                            help="container for all work_rid archives. Prefixes entries in --source_rid or --workList")
 
-
-    src_group = _parser.add_mutually_exclusive_group(required=False)
-
-    # the work list file must exist
-    src_group.add_argument('-f', '--workListFile',
-                           dest='work_list_file',
-                           help="File containing one RID per line.",
-                           type=argparse.FileType('r'))
-
-    # but the work rid need not exist, it is qualified by the --container arg
-    # if in fs mode, or the --bucket mode if in S3
-    src_group.add_argument('-w', '--work-rid',
-                           dest='work_rid',
-                           help='name or partially qualified path to one work',
-                           type=str)
-
     # noinspection PyTypeChecker
     _parser.parse_args(namespace=arg_namespace)
 
     # semantic checks
+    # 1.  In s3 the work_rid cannot be a path
     if arg_namespace.REPO_CHOICE == "s3" \
             and hasattr(arg_namespace, 'work_rid') \
             and arg_namespace.work_rid is not None \
@@ -154,6 +160,18 @@ def parse_args(arg_namespace: object) -> bool:
         print(error_message)
         _parser.print_usage()
         succeeded = False
+
+    # 2.  If the Worklist file is provided, you cannot provide the -i/--image-group argument
+    if  arg_namespace.work_list_file is not None \
+            and arg_namespace.image_group is not None:
+        error_message: str = f"Cannot provide both -f/--workListFile and -i/--image-group arguments"
+        print(error_message)
+        _parser.print_usage()
+        succeeded = False
+
+    # Turn image group list into array. Love that type flexibility
+    if arg_namespace.image_group is not None:
+        arg_namespace.image_group = arg_namespace.image_group.split(',')
 
     return succeeded
 
@@ -275,4 +293,3 @@ def prolog() -> Tuple[VMBArgs, ImageRepositoryBase.ImageRepositoryBase, AOLogger
     shell_logger.hush = False
 
     return args, image_repository, shell_logger
-

@@ -12,6 +12,19 @@ import v_m_b.manifestCommons as Common
 from util_lib.AOLogger import AOLogger
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
 
+MANIFEST_OBJECT_ = """
+    inspire from:
+    https://github.com/buda-base/drs-deposit/blob/2f2d9f7b58977502ae5e90c08e77e7deee4c470b/contrib/tojsondimensions.py#L68
+
+    in short:
+       - make a compressed json string (no space)
+       - gzip it
+       - send it to the repo
+      :param work_rid:˚
+      :param image_group_name:
+      :param manifest_object:
+    """
+
 USE_RETURN_ = """
     Create and upload a manifest for an image group, given a work_rid and a specific set of VolInfos.
     Used in ao_workflows
@@ -39,7 +52,9 @@ def manifestShell():
     if args.work_list_file is None and args.work_rid is None:
         raise ValueError("Error: in fs mode, one of -w/--work_rid or -f/--work_list_file must be given")
 
-    all_well = manifestForList(args.work_list_file) if args.work_list_file is not None else doOneManifest(args.work_rid)
+    all_well = manifestForList(args.work_list_file) \
+        if args.work_list_file is not None \
+        else doOneManifest(args.work_rid, args.image_group)
     if not all_well:
         error_string = f"Some builds failed. See log file {shell_logger.log_file_name}"
         print(error_string)
@@ -69,7 +84,7 @@ def manifestForList(sourceFile) -> bool:
     return all_well
 
 
-def doOneManifest(work_rid: str) -> bool:
+def doOneManifest(work_rid: str, named_image_groups:[str] = None) -> bool:
     """
     this function generates the manifests for each volume of a work RID (example W22084)
     :type work_rid: object
@@ -80,7 +95,7 @@ def doOneManifest(work_rid: str) -> bool:
     is_success: bool = False
 
     try:
-        vol_infos: [] = Common.getVolumeInfos(work_rid, image_repo)
+        vol_infos:[] = named_image_groups if named_image_groups is not None else Common.getVolumeInfos(work_rid, image_repo)
         if len(vol_infos) == 0:
             shell_logger.error(f"Could not find image groups for {work_rid}")
             return is_success
@@ -115,18 +130,7 @@ def upload_volume(work_rid: str, image_group: str, repo: ImageRepositoryBase, lo
 
 
 def upload(work_rid: str, image_group_name: str, manifest_object: object, image_repo: ImageRepositoryBase):
-    """
-    inspire from:
-    https://github.com/buda-base/drs-deposit/blob/2f2d9f7b58977502ae5e90c08e77e7deee4c470b/contrib/tojsondimensions.py#L68
 
-    in short:
-       - make a compressed json string (no space)
-       - gzip it
-       - send it to the repo
-      :param work_rid:˚
-      :param image_group_name:
-      :param manifest_object:
-    """
     # for adict in manifest_object:
     #     print(f" dict: {adict} json: d{json.dumps(adict)}")
     manifest_str = json.dumps(manifest_object)
