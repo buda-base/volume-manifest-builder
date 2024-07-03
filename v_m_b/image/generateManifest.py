@@ -134,4 +134,6 @@ def fillDataWithBlobImage(blob: io.BytesIO, data: dict):
             data["size"] = size
     except PIL.UnidentifiedImageError:
         data["error"] = "UnidentifiedImageError"
+    except Exception as e:
+        data["error"] = f"Exception {e}"
 # end region
