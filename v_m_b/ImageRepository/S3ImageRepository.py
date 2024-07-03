@@ -59,7 +59,7 @@ class S3ImageRepository(ImageRepositoryBase):
         self.repo_log.debug(vol_info)
         for image_s3 in parent.iter_objects():
             if image_s3.is_file():
-                image_file_name: str = image_s3.fname
+                image_file_name: str = image_s3.basename
                 image_key:str = image_s3.key
                 imgdata = {"filename": image_file_name}
                 res.append(imgdata)
