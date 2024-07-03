@@ -1,5 +1,18 @@
 # `bdrc-volume-manifest-builder`
 
+## New in Release 1.4
+
+1.4 adds the ability to specify named image groups in the command line, It applies to both the `fs` and `s3` modes.
+
+ex: `manifestforwork -w W23834 --image-group 3187,I123456 fs`
+
+Notes:
+
+- the -i/--image-group argument is a comma-separated list of image groups (or one item) If it is not given, all the
+  image groups in the work's BUDA catalog will be processed.
+- the --image-group flag cannot be given with the --work-list-file argument.
+- The --image-group arguments **do** apply when the --work-rid argument is a file path.
+
 ## New in Release 1.1
 
 - Ability to use either file system or S3 for image repository
@@ -232,13 +245,14 @@ twine upload dist/<thing you built
 
 # Project changelog
 
-| Release | Commit                         | Changes                         |
-|---------|--------------------------------|---------------------------------|
-| 1.3.0 | [82adb9f5]()| Use only image files in search |
-| 1.2.10  | | Clean up S3 error message       |
-| 1.2.9   | | Error diags in generateManifest |
-| 1.2.8   | | Update changelog to readme      |
-| 1.2.7   | | Use bdrc-util logging           |
-| 1.2.6   | | Use BUDA only  for resolution   |
-|         | | Use BUDA first for resolution   |
-| 1.2.0   | | Sort all output by filename     |
+| Release | Commit       | Changes                         |
+|---------|--------------|---------------------------------|
+| 1.3.0   | [30a3b2c3]() | use specific image groups       |
+|         | [82adb9f5]() | Use only image files in search  |
+| 1.2.10  |              | Clean up S3 error message       |
+| 1.2.9   |              | Error diags in generateManifest |
+| 1.2.8   |              | Update changelog to readme      |
+| 1.2.7   |              | Use bdrc-util logging           |
+| 1.2.6   |              | Use BUDA only  for resolution   |
+|         |              | Use BUDA first for resolution   |
+| 1.2.0   |              | Sort all output by filename     |
