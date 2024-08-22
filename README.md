@@ -1,3 +1,26 @@
+- [`bdrc-volume-manifest-builder`](#bdrc-volume-manifest-builder)
+  - [New in Release 1.3](#new-in-release-13)
+  - [New in Release 1.1](#new-in-release-11)
+  - [Intent](#intent)
+  - [Implementation](#implementation)
+    - [Standalone tool](#standalone-tool)
+        - [Language](#language)
+        - [Environment](#environment)
+  - [Usage](#usage)
+    - [Command line usage](#command-line-usage)
+      - [Common parameters](#common-parameters)
+      - [s3 mode usage](#s3-mode-usage)
+  - [Installation](#installation)
+    - [PIP](#pip)
+      - [Global installation](#global-installation)
+      - [Local installation](#local-installation)
+  - [Service](#service)
+  - [Development](#development)
+  - [Usage](#usage-1)
+  - [Building a distribution](#building-a-distribution)
+    - [Prerequisites](#prerequisites)
+- [Project changelog](#project-changelog)
+
 # `bdrc-volume-manifest-builder`
 
 ## New in Release 1.3
@@ -108,6 +131,18 @@ to work RIDs, in the `fs` mode (see below.)**
 - The system logs its activity into a file named _yyyy-MM-DD_HH_MM_PID_.local_v_m_b.log`
   in the folder given in the `-l/--logDir` argument (default `/var/log`)
   mode.
+
+  Before release 1.3.0, `manifestforwork` used an externally generated list of files (fileList.json) in the source directory to specify the population to process.
+  After that, the entire directory is scanned (this was needed to be able to process arbitrary image groups.), and the file list is disregarded.
+
+  The use of a file list was in response to many badly formed entries in `dimensions.json` due to random files being scanned. In Release 1.3.0, these files 
+  are now explicitly tagged in the `dimensions.json`
+ 
+```json
+{ 
+  "filename":"SomeFile.ext",
+  "error":"UnidentifiedImageError"
+}
 
 #### fs Mode Usage
 
