@@ -1,8 +1,8 @@
 # `bdrc-volume-manifest-builder`
 
-## New in Release 1.4
+## New in Release 1.3
 
-1.4 adds the ability to specify named image groups in the command line, It applies to both the `fs` and `s3` modes.
+1.3 adds the ability to specify named image groups in the command line, It applies to both the `fs` and `s3` modes.
 
 ex: `manifestforwork -w W23834 --image-group 3187,I123456 fs`
 
@@ -185,6 +185,8 @@ optional arguments:
 The S3 mode uses a bucket named with the optional `-b/--bucket` argument. The default bucket
 is closely held. note that the `--container` argument is not applicable in this mode, and
 that if a worklist is given, it must contain only RIDs, not paths.
+
+The bucket example takes the aws s3api form, e.g. `--bucket somewhere.over.the.rainbow`
 
 ## Installation
 

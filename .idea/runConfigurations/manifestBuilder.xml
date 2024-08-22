@@ -14,7 +14,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/v_m_b/manifestBuilder.py" />
-    <option name="PARAMETERS" value="-l . -d debug -w W23834 -i 3187,I123456  fs -c Archive1/34" />
+    <option name="PARAMETERS" value="--logDir $PROJECT_DIR$/../tmp/vmb64/log/sync-logs/2024-08-22/2024-08-22_10.50.18 --work-rid W23834 --image-group 3187 s3 --bucket manifest.bdrc.org" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
