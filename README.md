@@ -1,4 +1,40 @@
+- [`bdrc-volume-manifest-builder`](#bdrc-volume-manifest-builder)
+  - [New in Release 1.3](#new-in-release-13)
+  - [New in Release 1.1](#new-in-release-11)
+  - [Intent](#intent)
+  - [Implementation](#implementation)
+    - [Standalone tool](#standalone-tool)
+        - [Language](#language)
+        - [Environment](#environment)
+  - [Usage](#usage)
+    - [Command line usage](#command-line-usage)
+      - [Common parameters](#common-parameters)
+      - [s3 mode usage](#s3-mode-usage)
+  - [Installation](#installation)
+    - [PIP](#pip)
+      - [Global installation](#global-installation)
+      - [Local installation](#local-installation)
+  - [Service](#service)
+  - [Development](#development)
+  - [Usage](#usage-1)
+  - [Building a distribution](#building-a-distribution)
+    - [Prerequisites](#prerequisites)
+- [Project changelog](#project-changelog)
+
 # `bdrc-volume-manifest-builder`
+
+## New in Release 1.3
+
+1.3 adds the ability to specify named image groups in the command line, It applies to both the `fs` and `s3` modes.
+
+ex: `manifestforwork -w W23834 --image-group 3187,I123456 fs`
+
+Notes:
+
+- the -i/--image-group argument is a comma-separated list of image groups (or one item) If it is not given, all the
+  image groups in the work's BUDA catalog will be processed.
+- the --image-group flag cannot be given with the --work-list-file argument.
+- The --image-group arguments **do** apply when the --work-rid argument is a file path.
 
 ## New in Release 1.1
 
@@ -74,8 +110,7 @@ optional arguments:
                         File containing one RID per line.
   -w WORK_RID, --work-Rid WORK_RID
                         name or partially qualified path to one work
-  -p POLL_INTERVAL, --poll-interval POLL_INTERVAL
-                        Seconds between alerts for file.
+
 
 Repository Parser:
   Handles repository alternatives
@@ -93,10 +128,21 @@ to work RIDs, in the `fs` mode (see below.)**
 
 - The `--workListFile` and `--workRid` arguments are mutually exclusive
 
-- `-p` is disregarded in this mode. It is an argument to the `manifestFromS3`
 - The system logs its activity into a file named _yyyy-MM-DD_HH_MM_PID_.local_v_m_b.log`
   in the folder given in the `-l/--logDir` argument (default `/var/log`)
   mode.
+
+  Before release 1.3.0, `manifestforwork` used an externally generated list of files (fileList.json) in the source directory to specify the population to process.
+  After that, the entire directory is scanned (this was needed to be able to process arbitrary image groups.), and the file list is disregarded.
+
+  The use of a file list was in response to many badly formed entries in `dimensions.json` due to random files being scanned. In Release 1.3.0, these files 
+  are now explicitly tagged in the `dimensions.json`
+ 
+```json
+{ 
+  "filename":"SomeFile.ext",
+  "error":"UnidentifiedImageError"
+}
 
 #### fs Mode Usage
 
@@ -108,7 +154,7 @@ usage: manifestforwork [common options] { fs [fs options] | s3 [s3 options]} fs
 optional arguments:
   -h, --help            show this help message and exit
   -c CONTAINER, --container CONTAINER
-                        container for all work_Rid archives. Prefixes entries
+                        container for all work_rid archives. Prefixes entries
                         in --source_rid or --workList
   -i IMAGE_FOLDER_NAME, --image-folder-name IMAGE_FOLDER_NAME
                         name of parent folder of image files
@@ -175,26 +221,7 @@ The S3 mode uses a bucket named with the optional `-b/--bucket` argument. The de
 is closely held. note that the `--container` argument is not applicable in this mode, and
 that if a worklist is given, it must contain only RIDs, not paths.
 
-### manifestFromS3 input
-
-`manifestFromS3` is a mode which waits for a list of RIDs or paths to appear in a well known location
-and then processes what it finds there as if it were given in the `--workFile` argument.
-
-All the other parameters are the same - `manifestFromS3` can work on local file system (`fs`)
-or on `s3` targets.
-
-- Upload an input list (file name does not matter)
-  to [s3://manifest.bdrc.org/processing/todo/](s3://manifest.bdrc.org/processing/todo/)
-- run `manifestFromS3 -p n [ -l {info,debug,error} {fs [ fs arguments ] | s3 [ -b alternative.bucket]}`
-  from the command line.
-
-`manifestFromS3` does the following:
-
-1. Moves the input list from `s3://manifest.bdrc.org/processing/input` to `.../processing/inprocess` and changes the
-   name from <input> to <input-timestamp-instance-id>
-2. Runs the processing, uploading a dimensions.json file for each volume in each
-   RID in the input list.
-3. When complete, it moves the file from `.../processing/inprocess` to `../processing/done`
+The bucket example takes the aws s3api form, e.g. `--bucket somewhere.over.the.rainbow`
 
 ## Installation
 
@@ -218,9 +245,6 @@ environment):
 
 - `manifestforlist` the command mode, which operates on a list of RIDs
 - `manifestforwork` alternate command line mode, which works on one path
-- `manifestFromS3` the mode which runs continuously, polling an S3 resource for a file, and processing all the files it
-  finds.
-  This is the mode which runs on a service.
 
 ## Service
 
@@ -258,12 +282,14 @@ twine upload dist/<thing you built
 
 # Project changelog
 
-| Release | Changes                         |
-|---------|---------------------------------|
-| 1.2.10  | Clean up S3 error message       |
-| 1.2.9   | Error diags in generateManifest |
-| 1.2.8   | Update changelog to readme      |
-| 1.2.7   | Use bdrc-util logging           |
-| 1.2.6   | Use BUDA only  for resolution   |
-|         | Use BUDA first for resolution   |
-| 1.2.0   | Sort all output by filename     |
+| Release | Commit       | Changes                         |
+|---------|--------------|---------------------------------|
+| 1.3.0   | [30a3b2c3]() | use specific image groups       |
+|         | [82adb9f5]() | Use only image files in search  |
+| 1.2.10  |              | Clean up S3 error message       |
+| 1.2.9   |              | Error diags in generateManifest |
+| 1.2.8   |              | Update changelog to readme      |
+| 1.2.7   |              | Use bdrc-util logging           |
+| 1.2.6   |              | Use BUDA only  for resolution   |
+|         |              | Use BUDA first for resolution   |
+| 1.2.0   |              | Sort all output by filename     |

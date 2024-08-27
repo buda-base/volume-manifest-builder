@@ -1,14 +1,14 @@
 import abc
 import logging
+import  archive_ops.api as ao_api
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
-from v_m_b.VolumeInfo.VolInfo import VolInfo
 
 #
 # Super magic constant.
 # See https://github.com/archive-ops/scripts/processing/sync2archive.sh
 #
 
-
+# TODO: Extend to support a named image group
 class VolumeInfoBase(metaclass=abc.ABCMeta):
     """
     Gets volume info for a work.
@@ -28,11 +28,11 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         self.logger = logging.getLogger(__name__)
 
     @abc.abstractmethod
-    def fetch(self, urlRequest) -> [VolInfo]:
+    def get_image_group_disk_paths(self, urlRequest) -> []:
         """
         Subclasses implement
         :param urlRequest:
-        :return: VolInfo[] with  one entry for each image in the image group
+        :return: [] with  one entry for each image group in the work's catalog
         """
         pass
 
@@ -46,19 +46,5 @@ class VolumeInfoBase(metaclass=abc.ABCMeta):
         exist in. This is a stupid gross hack, we should either fix the archive repository, or have the
         BUDA and/or eXist APIs adjust for this.
         """
-        pre, rest = image_group_id[0], image_group_id[1:]
-        if pre == 'I' and rest.isdigit() and len(rest) == 4:
-            suffix = rest
-        else:
-            suffix = image_group_id
-        return suffix
+        return ao_api.get_image_group(image_group_id)
 
-    def getImageNames(self, work_rid: str, image_group: str, bom_name: str) -> []:
-        """
-        get names of the image files (actually, all the files in an image group, regardless
-        :param work_rid: work name ex: W1FPl2251
-        :param image_group: sub folder (e.g. I1CZ0085)
-        :param bom_name: name of container of file list
-        :return: str[]  should contain ['I1CZ0085001.jpg','I1CZ0085002.jpg'...']
-        """
-        return self._repo.getImageNames(work_rid, image_group, bom_name)

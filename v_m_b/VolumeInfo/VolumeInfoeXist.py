@@ -3,12 +3,13 @@
 from typing import List, Any
 from urllib import request
 
+import archive_ops.api
+
 from v_m_b.ImageRepository import ImageRepositoryBase
 from v_m_b.VolumeInfo.VolumeInfoBase import VolumeInfoBase
-from v_m_b.VolumeInfo.VolInfo import VolInfo
-from v_m_b.manifestCommons import VMT_BUDABOM
 
 
+# TODO: Stop using
 class VolumeInfoeXist(VolumeInfoBase):
     """
     this uses the exist db queries get the volume list of a work, including, for each volume:
@@ -22,10 +23,10 @@ class VolumeInfoeXist(VolumeInfoBase):
     def __init__(self, repo: ImageRepositoryBase):
         super(VolumeInfoeXist, self).__init__(repo)
 
-    def fetch(self, work_rid: str) -> []:
+    def get_image_group_disk_paths(self, work_rid: str) -> []:
         """
         :param work_rid: Resource id
-        :type work_rid: object
+        :type work_rid: str
         """
 
         # Interesting first pass failure: @ urllib.error.URLError: <urlopen error
@@ -37,10 +38,7 @@ class VolumeInfoeXist(VolumeInfoBase):
         if not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None):
             ssl._create_default_https_context = ssl._create_unverified_context
 
-        _dir: str
-        _work: str
-        _dir, _work = self._repo.resolveWork(work_rid)
-        req = f'https://legacy.tbrc.org/public?module=work&query=work-igs&args={_work}'
+        req = f'https://legacy.tbrc.org/public?module=work&query=work-igs&args={work_rid}'
 
         vol_info: List[Any] = []
         from lxml import etree
@@ -53,26 +51,13 @@ class VolumeInfoeXist(VolumeInfoBase):
 
                 # work-igs returns one node with space delimited list of image groups
                 rTree = etree.fromstring(info)
-                igText = rTree.text
-                if igText:
-                    igs = igText.split(" ")
-                    vol_info = self.expand_groups(work_rid, igs)
+                ig_text = rTree.text
+                if ig_text:
+                    igs = ig_text.split(" ")
+                    for ig in ig_text:
+                        vol_info.append(archive_ops.api.get_disk_ig_from_buda(ig))
         except etree.ParseError:
             pass
         return vol_info
 
-    def expand_groups(self, work_rid: str, image_groups: []) -> list:
-        """
-        expands an image group into a list of its files
-        :type image_groups: []
-        :param work_rid: work resource Id
-        :param image_groups: Image Groups to expand
-        :return: VolInfo[] of all the images in all imagegroups in the input
-        """
-        vi = []
-        for ig in image_groups:
-            ig_folder_name: str = self.getImageGroup(ig)
-            vol_infos = self.getImageNames(work_rid, ig_folder_name, VMT_BUDABOM)
-            vi.append(VolInfo(vol_infos, ig_folder_name))
 
-        return vi

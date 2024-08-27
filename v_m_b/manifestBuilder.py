@@ -2,7 +2,7 @@
 shell for manifest builder
 """
 import json
-import logging
+
 import sys
 import time
 import traceback
@@ -11,51 +11,32 @@ import traceback
 import v_m_b.manifestCommons as Common
 from util_lib.AOLogger import AOLogger
 from v_m_b.ImageRepository.ImageRepositoryBase import ImageRepositoryBase
-from v_m_b.VolumeInfo.VolInfo import VolInfo
 
-image_repo: ImageRepositoryBase
-shell_logger: AOLogger
+MANIFEST_OBJECT_ = """
+    inspire from:
+    https://github.com/buda-base/drs-deposit/blob/2f2d9f7b58977502ae5e90c08e77e7deee4c470b/contrib/tojsondimensions.py#L68
 
-
-def manifestFromS3():
+    in short:
+       - make a compressed json string (no space)
+       - gzip it
+       - send it to the repo
+      :param work_rid:˚
+      :param image_group_name:
+      :param manifest_object:
     """
-    Retrieves processes S3 objects in a bucket/key pair, where key is a prefix
+
+USE_RETURN_ = """
+    Create and upload a manifest for an image group, given a work_rid and a specific set of VolInfos.
+    Used in ao_workflows
+    :param work_rid: Work Resource
+    :param image_group: Specific image group to process
+    :param repo: Repository to use
+    :param logger: logger to use
     :return:
     """
 
-    global image_repo, shell_logger
-    args, image_repo, shell_logger = Common.prolog()
-
-    # manifestFromS3 specific checking - no -f -w arguments
-    if (hasattr(args, 'work_Rid') and args.work_Rid is not None) \
-            or (hasattr(args, 'work_list_file') and args.work_list_file is not None):
-        raise ValueError("manifestFromS3 must be given without --work_Rid and --work_file_name argument.")
-
-    while True:
-        try:
-
-            import boto3
-            session = boto3.session.Session(region_name='us-east-1')
-            client = session.client('s3')
-            work_list = Common.buildWorkListFromS3(client)
-
-            for s3Path in work_list:
-                s3_full_path = f'{Common.processing_prefix}{s3Path}'
-
-                # jimk: need to pass a file-like object. NamedTemporaryFile returns an odd
-                # beast which you cant run readlines() on
-                from tempfile import NamedTemporaryFile
-                file_path = NamedTemporaryFile()
-                client.download_file(Common.S3_MANIFEST_WORK_LIST_BUCKET, s3_full_path, file_path.name)
-                manifestForList(open(file_path.name, "r"))
-                # manifestForList(file_path.name)
-
-            # don't need to rename work_list. Only when moving from src to done
-            if len(work_list) > 0:
-                Common.s3_work_manager.mark_done(work_list, work_list)
-        except Exception as eek:
-            shell_logger.log(logging.ERROR, str(eek))
-        time.sleep(abs(args.poll_interval))
+image_repo: ImageRepositoryBase
+shell_logger: AOLogger
 
 
 def manifestShell():
@@ -66,16 +47,14 @@ def manifestShell():
     global image_repo, shell_logger
     args, image_repo, shell_logger = Common.prolog()
 
-    all_well: bool = False
 
     # sanity check specific to fs args: -w or -f has to be given
-    if args.work_list_file is None and args.work_Rid is None:
-        raise ValueError("Error: in fs mode, one of -w/--work_Rid or -f/--work_list_file must be given")
-    if args.work_list_file is not None:
-        all_well = manifestForList(args.work_list_file)
-    else:
-        all_well = doOneManifest(args.work_Rid)
+    if args.work_list_file is None and args.work_rid is None:
+        raise ValueError("Error: in fs mode, one of -w/--work_rid or -f/--work_list_file must be given")
 
+    all_well = manifestForList(args.work_list_file) \
+        if args.work_list_file is not None \
+        else doOneManifest(args.work_rid, args.image_group)
     if not all_well:
         error_string = f"Some builds failed. See log file {shell_logger.log_file_name}"
         print(error_string)
@@ -105,10 +84,10 @@ def manifestForList(sourceFile) -> bool:
     return all_well
 
 
-def doOneManifest(work_Rid: str) -> bool:
+def doOneManifest(work_rid: str, named_image_groups:[str] = None) -> bool:
     """
     this function generates the manifests for each volume of a work RID (example W22084)
-    :type work_Rid: object
+    :type work_rid: object
     """
 
     global image_repo, shell_logger
@@ -116,13 +95,13 @@ def doOneManifest(work_Rid: str) -> bool:
     is_success: bool = False
 
     try:
-        vol_infos: [VolInfo] = Common.getVolumeInfos(work_Rid, image_repo)
+        vol_infos:[] = named_image_groups if named_image_groups is not None else Common.getVolumeInfos(work_rid, image_repo)
         if len(vol_infos) == 0:
-            shell_logger.error(f"Could not find image groups for {work_Rid}")
+            shell_logger.error(f"Could not find image groups for {work_rid}")
             return is_success
 
         for vi in vol_infos:
-            upload_volume(work_Rid, vi, image_repo, shell_logger)
+            upload_volume(work_rid, vi, image_repo, shell_logger)
 
         is_success = True
     except Exception as inst:
@@ -130,57 +109,37 @@ def doOneManifest(work_Rid: str) -> bool:
         stack: str = ""
         for tb in traceback.format_tb(eek[2], 5):
             stack += tb
-        shell_logger.error(f"{work_Rid} failed to build manifest {type(inst)} {inst}\n{stack} ")
+        shell_logger.error(f"{work_rid} failed to build manifest {type(inst)} {inst}\n{stack} ")
         is_success = False
 
     return is_success
 
 
-def upload_volume(work_rid: str, vol_info: VolInfo, repo: ImageRepositoryBase, logger: AOLogger) -> bool:
-    """
-    Create and upload a partial work, given a work_rid and a specific set of VolInfos.
-    Used in ao_workflows
-    :param work_rid: Work Resource
-    :param vol_info: Specific image group to process
-    :param repo: Repository to use
-    :param logger: logger to use
-    :return:
-    """
+def upload_volume(work_rid: str, image_group: str, repo: ImageRepositoryBase, logger: AOLogger) -> bool:
     _tick = time.monotonic()
-    manifest = repo.generateManifest(work_rid, vol_info)
+    manifest = repo.generateManifest(work_rid, image_group)
     if len(manifest) > 0:
-        upload(work_rid, vol_info.imageGroupID, manifest, repo)
+        upload(work_rid, image_group, manifest, repo)
         _et = time.monotonic() - _tick
-        logger.info(f"Volume {work_rid}-{vol_info.imageGroupID} processing: {_et:05.3} sec ")
+        logger.info(f"Volume {work_rid}-{image_group} processing: {_et:05.3} sec ")
     else:
         _et = time.monotonic() - _tick
-        logger.info(f"No manifest created for {work_rid}-{vol_info.imageGroupID} ")
+        logger.info(f"No manifest created for {work_rid}-{image_group} ")
 
     return True
 
 
-def upload(work_Rid: str, image_group_name: str, manifest_object: object, image_repo: ImageRepositoryBase):
-    """
-    inspire from:
-    https://github.com/buda-base/drs-deposit/blob/2f2d9f7b58977502ae5e90c08e77e7deee4c470b/contrib/tojsondimensions.py#L68
+def upload(work_rid: str, image_group_name: str, manifest_object: object, image_repo: ImageRepositoryBase):
 
-    in short:
-       - make a compressed json string (no space)
-       - gzip it
-       - send it to the repo
-      :param work_Rid:˚
-      :param image_group_name:
-      :param manifest_object:
-    """
     # for adict in manifest_object:
     #     print(f" dict: {adict} json: d{json.dumps(adict)}")
     manifest_str = json.dumps(manifest_object)
     # Even for debug, this is a little excessive
     # shell_logger.debug(manifest_str)
     manifest_gzip: bytes = Common.gzip_str(manifest_str)
-    image_repo.uploadManifest(work_Rid, image_group_name, Common.VMT_DIM, manifest_gzip)
+    image_repo.uploadManifest(work_rid, image_group_name, Common.VMT_DIM, manifest_gzip)
 
 
 if __name__ == '__main__':
     manifestShell()
-    # manifestFromS3()
+

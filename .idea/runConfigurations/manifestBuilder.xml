@@ -1,6 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="manifestBuilder" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
     <module name="volume-manifest-tool" />
+    <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
@@ -13,7 +14,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/v_m_b/manifestBuilder.py" />
-    <option name="PARAMETERS" value="-l . -d debug -w ./W19801 fs -c ./vmb52" />
+    <option name="PARAMETERS" value="--logDir $PROJECT_DIR$/../tmp/vmb64/log/sync-logs/2024-08-22/2024-08-22_10.50.18 --work-rid W23834 --image-group 3187 s3 --bucket manifest.bdrc.org" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
