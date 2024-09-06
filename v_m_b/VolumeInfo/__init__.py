@@ -1,1 +1,1 @@
-__all__ = ['VolInfo', 'VolumeInfoBase', 'VolumeInfoBuda', 'VolumeInfoeXist']
+__all__ = [ 'VolumeInfoBase', 'VolumeInfoBuda']

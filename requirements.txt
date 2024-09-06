@@ -7,3 +7,4 @@ boto
 aiofiles
 lxml
 requests
+s3pathlib

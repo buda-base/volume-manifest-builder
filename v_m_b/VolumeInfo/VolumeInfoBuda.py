@@ -1,12 +1,11 @@
-import csv
 from urllib import request
 
 from v_m_b.ImageRepository import ImageRepositoryBase
 from v_m_b.VolumeInfo.VolumeInfoBase import VolumeInfoBase
-from v_m_b.VolumeInfo.VolInfo import VolInfo
-from v_m_b.manifestCommons import VMT_BUDABOM
 
 
+
+# TODO: Extend to support a named image group
 class VolumeInfoBUDA(VolumeInfoBase):
     """
     Gets the Volume list from BUDA. BUDA decided it did not want to support
@@ -15,7 +14,7 @@ class VolumeInfoBUDA(VolumeInfoBase):
     def __init__(self, repo: ImageRepositoryBase):
         super(VolumeInfoBUDA, self).__init__(repo)
 
-    def fetch(self, work_rid: str) -> object:
+    def get_image_group_disk_paths(self, work_rid: str) -> object:
         """
         BUDA LDS-PDI implementation
         :param: work_rid
@@ -23,11 +22,10 @@ class VolumeInfoBUDA(VolumeInfoBase):
         """
 
         from lxml import etree
+        from archive_ops.api import get_disk_ig_from_buda
         vol_info = []
 
-        _dir, _work = self._repo.resolveWork(work_rid)
-
-        req = f'http://purl.bdrc.io/query/table/volumesForInstance?R_RES=bdr:{_work}&format=xml'
+        req = f'http://purl.bdrc.io/query/table/volumesForInstance?R_RES=bdr:{work_rid}&format=xml'
         try:
             with request.urlopen(req) as response:
                 rTree = etree.parse(response)
@@ -47,17 +45,7 @@ class VolumeInfoBUDA(VolumeInfoBase):
                     # find the last node on the path
                     image_group_name = uri_path_nodes.split('/')[-1]
 
-
-                    # HACK
-                    image_group_folder = self.getImageGroup(image_group_name)
-                    image_list = self.getImageNames(work_rid, image_group_folder, VMT_BUDABOM)
-
-                    # Dont add empty vol infos
-                    if len(image_list) > 0:
-                        vi = VolInfo(image_list, image_group_folder)
-                        vol_info.append(vi)
-                    else:
-                        self.logger.warn(f"No images found in group named {image_group_name} folder {image_group_folder}")
+                    vol_info.append(get_disk_ig_from_buda(image_group_name))
         # Swallow all exceptions.
         except Exception as eek:
             pass
