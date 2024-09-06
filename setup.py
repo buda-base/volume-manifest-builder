@@ -6,20 +6,14 @@ from os import path
 
 from setuptools import setup, find_packages
 
-long_description_content_type = 'text/x-rst'
 this_directory = path.abspath(path.dirname(__file__))
-readme_doc = path.join(this_directory, 'README.md')
-try:
-    import pypandoc
+readme_doc = path.join(this_directory, 'README.rst')
+long_description = open(readme_doc).read()
 
-    long_description = pypandoc.convert_file(readme_doc, 'rst')
-except(IOError, ImportError):
-    long_description = open(readme_doc).read()
-    long_description_content_type = 'text/markdown'
 console_scripts = ['manifestforwork = v_m_b.manifestBuilder:manifestShell',
                    'manifestFromS3 = v_m_b.manifestBuilder:manifestFromS3']
 
-setup(version='1.3.0',
+setup(version='1.3.2',
       name='bdrc-volume-manifest-builder',
       packages=find_packages(),
       url='https://github.com/buda-base/volume-manifest-builder/', license='', author='jimk',
@@ -32,5 +26,4 @@ setup(version='1.3.0',
       classifiers=["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License",
                    "Operating System :: OS Independent",
                    "Development Status :: 5 - Production/Stable"],
-      long_description=long_description,
-      long_description_content_type=long_description_content_type)
+      long_description=long_description)
