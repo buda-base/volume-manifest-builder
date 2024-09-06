@@ -8,18 +8,16 @@ from setuptools import setup, find_packages
 
 long_description_content_type = 'text/x-rst'
 this_directory = path.abspath(path.dirname(__file__))
-readme_doc = path.join(this_directory, 'README.md')
-try:
-    import pypandoc
 
-    long_description = pypandoc.convert_file(readme_doc, 'rst')
-except(IOError, ImportError):
-    long_description = open(readme_doc).read()
-    long_description_content_type = 'text/markdown'
+# Just fail if the readme is not there
+readme_doc = path.join(this_directory, 'README.rst')
+# Use default long_description_content_type = 'text/x-rst'
+long_description = open(readme_doc).read()
+
 console_scripts = ['manifestforwork = v_m_b.manifestBuilder:manifestShell',
                    'manifestFromS3 = v_m_b.manifestBuilder:manifestFromS3']
 
-setup(version='1.2.10',
+setup(version='1.3.1',
       name='bdrc-volume-manifest-builder',
       packages=find_packages(),
       url='https://github.com/buda-base/volume-manifest-builder/', license='', author='jimk',
